@@ -10,40 +10,219 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📊 Game Stats Dashboard</h1>
-            <p class="subtitle">Player statistics and analytics</p>
-        </header>
-
-        <div id="summaryCards" class="summary-cards"></div>
-
-        <div class="view-selector">
-            <button class="view-btn active" data-view="players">
-                👤 Player Stats
-            </button>
-            <button class="view-btn" data-view="teammates">
-                🤝 Teammate Stats
-            </button>
-            <button class="view-btn" data-view="plusminus">
-                ➕➖ Plus/Minus
-            </button>
-        </div>
-
-        <div id="statsContainer" class="stats-container">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading statistics...</p>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <span class="nav-logo">STATS</span>
+            <div class="nav-links">
+                <a href="#" class="nav-link" onclick="goBackHome(); return false;">Stats Home</a>
+                <a href="#" class="nav-link" onclick="showPlayersPage(); return false;">Players</a>
+                <a href="#" class="nav-link">Teams</a>
+                <a href="#" class="nav-link">Leaders</a>
             </div>
         </div>
+    </nav>
 
-        <div class="refresh-section">
-            <button id="refreshBtn" class="refresh-btn">🔄 Refresh Stats</button>
-            <p class="last-updated">Last updated: <span id="lastUpdate">Never</span></p>
+
+    <!-- Players Page -->
+    <div class="players-page" id="playersPage" style="display: none;">
+        <div class="players-page-header">
+            <h2 class="players-page-title">MY PLAYERS</h2>
+        </div>
+        
+        <div class="players-carousel-container">
+            <button class="carousel-btn carousel-btn-left" id="carouselLeftBtn">←</button>
+            <div class="players-carousel" id="playersCarousel">
+                <!-- Player cards will be populated by JavaScript -->
+            </div>
+            <button class="carousel-btn carousel-btn-right" id="carouselRightBtn">→</button>
+        </div>
+
+        <div class="league-roster-section">
+            <div class="roster-header">
+                <h2 class="roster-title">LEAGUE ROSTER</h2>
+                <div class="roster-controls">
+                    <input type="text" id="playerSearch" class="player-search" placeholder="Search Players">
+                </div>
+            </div>
+            
+            <div class="roster-table-container">
+                <table class="roster-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="name">
+                                PLAYER <span class="sort-indicator"></span>
+                            </th>
+                            <th class="sortable" data-sort="wins">
+                                WINS <span class="sort-indicator"></span>
+                            </th>
+                            <th class="sortable" data-sort="losses">
+                                LOSSES <span class="sort-indicator"></span>
+                            </th>
+                            <th class="sortable" data-sort="winRate">
+                                WIN RATE <span class="sort-indicator"></span>
+                            </th>
+                            <th class="sortable" data-sort="plusMinus">
+                                +/- <span class="sort-indicator"></span>
+                            </th>
+                            <th class="sortable" data-sort="games">
+                                GAMES <span class="sort-indicator"></span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterTableBody">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <script src="data-processor.js"></script>
-    <script src="script.js"></script>
+    <!-- Home Page -->
+    <div class="main-container" id="homePage">
+        <div class="main-content">
+            <div class="players-section">
+                <div class="section-header">
+                    <h2 class="section-title">PLAYERS</h2>
+                    <div class="section-controls">
+                        <a href="#" class="see-all-link" onclick="showPlayersPage(); return false;">See All Player Stats</a>
+                    </div>
+                </div>
+
+                <div class="tabs-container">
+                    <button class="tab-btn active" data-period="monthly">This Month's Leaders</button>
+                    <button class="tab-btn" data-period="alltime">All Time Leaders</button>
+                </div>
+
+                <div class="date-display" id="dateDisplay"></div>
+
+                <div class="stats-grid" id="statsGrid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading statistics...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">MORE STATS</h3>
+                <div class="more-stats-list" id="moreStats">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Profile Page -->
+    <div class="player-profile-page" id="playerProfilePage" style="display: none;">
+        <div class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-top-section">
+                    <div class="profile-picture-container">
+                        <div class="profile-picture" id="profilePicture">
+                            <!-- Profile picture will go here later -->
+                        </div>
+                    </div>
+                    <div class="profile-stats-section">
+                        <h1 class="profile-name" id="profileName">Player Name</h1>
+                        <div class="profile-stats-grid" id="profileStatsGrid">
+                            <!-- Stats will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-description" id="profileDescription">
+                    <!-- Description will go here later -->
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-tabs">
+            <button class="profile-tab active" data-tab="synergy">Synergy</button>
+            <button class="profile-tab" data-tab="matchups">Matchups</button>
+        </div>
+
+        <div class="profile-content">
+            <div class="synergy-section" id="synergySection">
+                <div class="period-tabs">
+                    <button class="period-tab active" data-section="synergy" data-period="alltime">All Time</button>
+                    <button class="period-tab" data-section="synergy" data-period="monthly">Monthly</button>
+                </div>
+                <div class="month-selector" id="synergyMonthSelector" style="display: none;">
+                    <label for="synergyMonthSelect">Select Month:</label>
+                    <select id="synergyMonthSelect" class="month-select">
+                        <!-- Will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="synergy-lists-container">
+                    <div class="synergy-top">
+                        <h3 class="synergy-title">Top 5 Win Rates with Duos</h3>
+                        <div class="duo-list" id="topDuosList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="synergy-bottom">
+                        <h3 class="synergy-title">Bottom 5 Win Rates with Duos</h3>
+                        <div class="duo-list" id="bottomDuosList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="matchups-section" id="matchupsSection" style="display: none;">
+                <div class="period-tabs">
+                    <button class="period-tab active" data-section="matchups" data-period="alltime">All Time</button>
+                    <button class="period-tab" data-section="matchups" data-period="monthly">Monthly</button>
+                </div>
+                <div class="month-selector" id="matchupsMonthSelector" style="display: none;">
+                    <label for="matchupsMonthSelect">Select Month:</label>
+                    <select id="matchupsMonthSelect" class="month-select">
+                        <!-- Will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="matchups-lists-container">
+                    <div class="matchups-top">
+                        <h3 class="synergy-title">Top 5 Win Rates Against</h3>
+                        <div class="duo-list" id="topOpponentsList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="matchups-bottom">
+                        <h3 class="synergy-title">Bottom 5 Win Rates Against</h3>
+                        <div class="duo-list" id="bottomOpponentsList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="opponent-lookup-section">
+                    <h3 class="synergy-title">Lookup Win Rate</h3>
+                    <div class="lookup-toggle">
+                        <button class="toggle-btn active" id="withToggle" data-mode="with">With</button>
+                        <button class="toggle-btn" id="againstToggle" data-mode="against">Against</button>
+                    </div>
+                    <div class="lookup-controls">
+                        <select id="opponentSelect" class="teammate-select">
+                            <option value="">Select a player...</option>
+                        </select>
+                        <button id="opponentLookupBtn" class="lookup-btn">Lookup</button>
+                    </div>
+                    <div class="lookup-result" id="opponentLookupResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-button-container">
+            <button id="backBtn" class="back-btn">← Back to Stats Home</button>
+        </div>
+    </div>
+
+    <div class="refresh-section">
+        <button id="refreshBtn" class="refresh-btn">🔄 Refresh Stats</button>
+        <p class="last-updated">Last updated: <span id="lastUpdate">Never</span></p>
+    </div>
+
+    <script src="data-processor.js?v=2"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>

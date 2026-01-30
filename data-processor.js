@@ -4,6 +4,10 @@ class StatsProcessor {
         this.games = [];
         this.playerStats = new Map();
         this.teammateStats = new Map();
+        this.monthlyStats = new Map();
+        this.monthlyTeammateStats = new Map();
+        this.opponentStats = new Map(); // For tracking win rates against opponents
+        this.monthlyOpponentStats = new Map(); // For monthly opponent stats
     }
 
     // Parse CSV data
@@ -67,23 +71,121 @@ class StatsProcessor {
     calculateStats() {
         this.playerStats.clear();
         this.teammateStats.clear();
+        this.monthlyStats = new Map();
+        this.monthlyTeammateStats = new Map();
+        this.opponentStats.clear();
+        this.monthlyOpponentStats = new Map();
 
         this.games.forEach(game => {
             const team1Won = game.team1.score > game.team2.score;
             const team2Won = game.team2.score > game.team1.score;
             
+            // Get game date for monthly filtering
+            const gameDate = new Date(game.timestamp);
+            const currentDate = new Date();
+            const isThisMonth = gameDate.getMonth() === currentDate.getMonth() && 
+                              gameDate.getFullYear() === currentDate.getFullYear();
+            
             // Process Team 1
             game.team1.players.forEach(player => {
                 this.updatePlayerStats(player, team1Won, team2Won, game.team1.score, game.team2.score);
+                if (isThisMonth) {
+                    this.updateMonthlyStats(player, team1Won, team2Won, game.team1.score, game.team2.score);
+                }
                 this.updateTeammateStats(player, game.team1.players, team1Won, team2Won);
+                if (isThisMonth) {
+                    this.updateMonthlyTeammateStats(player, game.team1.players, team1Won, team2Won);
+                }
+                // Update opponent stats
+                game.team2.players.forEach(opponent => {
+                    this.updateOpponentStats(player, opponent, team1Won, team2Won, this.opponentStats);
+                    if (isThisMonth) {
+                        this.updateOpponentStats(player, opponent, team1Won, team2Won, this.monthlyOpponentStats);
+                    }
+                });
             });
             
             // Process Team 2
             game.team2.players.forEach(player => {
                 this.updatePlayerStats(player, team2Won, team1Won, game.team2.score, game.team1.score);
+                if (isThisMonth) {
+                    this.updateMonthlyStats(player, team2Won, team1Won, game.team2.score, game.team1.score);
+                }
                 this.updateTeammateStats(player, game.team2.players, team2Won, team1Won);
+                if (isThisMonth) {
+                    this.updateMonthlyTeammateStats(player, game.team2.players, team2Won, team1Won);
+                }
+                // Update opponent stats
+                game.team1.players.forEach(opponent => {
+                    this.updateOpponentStats(player, opponent, team2Won, team1Won, this.opponentStats);
+                    if (isThisMonth) {
+                        this.updateOpponentStats(player, opponent, team2Won, team1Won, this.monthlyOpponentStats);
+                    }
+                });
             });
         });
+    }
+
+    // Update monthly teammate stats
+    updateMonthlyTeammateStats(player, teammates, won, lost) {
+        teammates.forEach(teammate => {
+            if (player === teammate) return;
+            
+            const pair = [player, teammate].sort().join(' & ');
+            
+            if (!this.monthlyTeammateStats.has(pair)) {
+                this.monthlyTeammateStats.set(pair, {
+                    wins: 0,
+                    losses: 0,
+                    games: 0
+                });
+            }
+            
+            const stats = this.monthlyTeammateStats.get(pair);
+            stats.games++;
+            if (won) stats.wins++;
+            if (lost) stats.losses++;
+        });
+    }
+
+    // Update opponent statistics (win rate against specific players)
+    updateOpponentStats(player, opponent, won, lost, statsMap) {
+        const key = `${player.toLowerCase()}|${opponent.toLowerCase()}`;
+        
+        if (!statsMap.has(key)) {
+            statsMap.set(key, {
+                player: player,
+                opponent: opponent,
+                wins: 0,
+                losses: 0,
+                games: 0
+            });
+        }
+        
+        const stats = statsMap.get(key);
+        stats.games++;
+        if (won) stats.wins++;
+        if (lost) stats.losses++;
+    }
+
+    // Update monthly statistics
+    updateMonthlyStats(player, won, lost, goalsFor, goalsAgainst) {
+        if (!this.monthlyStats.has(player)) {
+            this.monthlyStats.set(player, {
+                wins: 0,
+                losses: 0,
+                goalsFor: 0,
+                goalsAgainst: 0,
+                plusMinus: 0
+            });
+        }
+        
+        const stats = this.monthlyStats.get(player);
+        if (won) stats.wins++;
+        if (lost) stats.losses++;
+        stats.goalsFor += goalsFor;
+        stats.goalsAgainst += goalsAgainst;
+        stats.plusMinus = stats.goalsFor - stats.goalsAgainst;
     }
 
     // Update individual player statistics
@@ -183,5 +285,294 @@ class StatsProcessor {
     getPlusMinusLeaders(minGames = 1) {
         return this.getPlayerStats(minGames)
             .sort((a, b) => b.plusMinus - a.plusMinus);
+    }
+
+    // Get monthly player stats
+    getMonthlyPlayerStats(minGames = 1) {
+        const players = Array.from(this.monthlyStats.entries())
+            .map(([name, stats]) => ({
+                name,
+                wins: stats.wins,
+                losses: stats.losses,
+                games: stats.wins + stats.losses,
+                winRate: stats.wins + stats.losses > 0 
+                    ? (stats.wins / (stats.wins + stats.losses) * 100).toFixed(1) 
+                    : 0,
+                goalsFor: stats.goalsFor,
+                goalsAgainst: stats.goalsAgainst,
+                plusMinus: stats.plusMinus
+            }))
+            .filter(p => p.games >= minGames);
+        
+        return players;
+    }
+
+    // Get leaders by category
+    getLeadersByCategory(category, isMonthly = false, minGames = 1) {
+        const stats = isMonthly ? this.getMonthlyPlayerStats(minGames) : this.getPlayerStats(minGames);
+        
+        let sorted = [];
+        switch(category) {
+            case 'winrate':
+                sorted = [...stats].sort((a, b) => {
+                    if (parseFloat(b.winRate) !== parseFloat(a.winRate)) {
+                        return parseFloat(b.winRate) - parseFloat(a.winRate);
+                    }
+                    return b.games - a.games;
+                });
+                break;
+            case 'wins':
+                sorted = [...stats].sort((a, b) => b.wins - a.wins);
+                break;
+            case 'losses':
+                sorted = [...stats].sort((a, b) => b.losses - a.losses);
+                break;
+            case 'plusminus':
+                sorted = [...stats].sort((a, b) => b.plusMinus - a.plusMinus);
+                break;
+        }
+        
+        return sorted.slice(0, 5); // Top 5
+    }
+
+    // Get player-specific stats
+    getPlayerProfile(playerName) {
+        const allStats = this.getPlayerStats(1);
+        const player = allStats.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+        return player || null;
+    }
+
+    // Get duo stats for a specific player
+    getPlayerDuoStats(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        const duos = [];
+        let statsMap = this.teammateStats;
+        
+        if (isMonthly) {
+            // Filter games by selected month/year
+            const filteredStats = new Map();
+            this.games.forEach(game => {
+                const gameDate = new Date(game.timestamp);
+                const gameMonth = gameDate.getMonth();
+                const gameYear = gameDate.getFullYear();
+                
+                if (selectedMonth !== null && selectedYear !== null) {
+                    if (gameMonth === selectedMonth && gameYear === selectedYear) {
+                        // Process this game for teammate stats
+                        const team1Won = game.team1.score > game.team2.score;
+                        const team2Won = game.team2.score > game.team1.score;
+                        
+                        game.team1.players.forEach(player => {
+                            game.team1.players.forEach(teammate => {
+                                if (player !== teammate) {
+                                    const pair = [player, teammate].sort().join(' & ');
+                                    if (!filteredStats.has(pair)) {
+                                        filteredStats.set(pair, { wins: 0, losses: 0, games: 0 });
+                                    }
+                                    const stats = filteredStats.get(pair);
+                                    stats.games++;
+                                    if (team1Won) stats.wins++;
+                                    if (team2Won) stats.losses++;
+                                }
+                            });
+                        });
+                        
+                        game.team2.players.forEach(player => {
+                            game.team2.players.forEach(teammate => {
+                                if (player !== teammate) {
+                                    const pair = [player, teammate].sort().join(' & ');
+                                    if (!filteredStats.has(pair)) {
+                                        filteredStats.set(pair, { wins: 0, losses: 0, games: 0 });
+                                    }
+                                    const stats = filteredStats.get(pair);
+                                    stats.games++;
+                                    if (team2Won) stats.wins++;
+                                    if (team1Won) stats.losses++;
+                                }
+                            });
+                        });
+                    }
+                }
+            });
+            statsMap = filteredStats;
+        }
+        
+        // Find all teammate pairs involving this player
+        statsMap.forEach((stats, pair) => {
+            const players = pair.split(' & ');
+            if (players[0].toLowerCase() === playerName.toLowerCase() || 
+                players[1].toLowerCase() === playerName.toLowerCase()) {
+                const teammate = players[0].toLowerCase() === playerName.toLowerCase() 
+                    ? players[1] 
+                    : players[0];
+                
+                if (stats.games >= minGames) {
+                    const winRate = stats.games > 0 
+                        ? (stats.wins / stats.games * 100).toFixed(1) 
+                        : 0;
+                    
+                    duos.push({
+                        teammate,
+                        wins: stats.wins,
+                        losses: stats.losses,
+                        games: stats.games,
+                        winRate: parseFloat(winRate)
+                    });
+                }
+            }
+        });
+        
+        return duos;
+    }
+
+    // Get top 5 duos for a player
+    getTopDuos(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        const duos = this.getPlayerDuoStats(playerName, minGames, isMonthly, selectedMonth, selectedYear);
+        return duos
+            .sort((a, b) => {
+                if (b.winRate !== a.winRate) {
+                    return b.winRate - a.winRate;
+                }
+                return b.games - a.games;
+            })
+            .slice(0, 5);
+    }
+
+    // Get bottom 5 duos for a player
+    getBottomDuos(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        const duos = this.getPlayerDuoStats(playerName, minGames, isMonthly, selectedMonth, selectedYear);
+        return duos
+            .sort((a, b) => {
+                if (a.winRate !== b.winRate) {
+                    return a.winRate - b.winRate;
+                }
+                return b.games - a.games;
+            })
+            .slice(0, 5);
+    }
+
+    // Get winrate with specific teammate
+    getDuoWinRate(player1, player2, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        if (isMonthly && selectedMonth !== null && selectedYear !== null) {
+            // Calculate on the fly for selected month
+            const duos = this.getPlayerDuoStats(player1, minGames, isMonthly, selectedMonth, selectedYear);
+            const duo = duos.find(d => d.teammate.toLowerCase() === player2.toLowerCase());
+            if (!duo) return null;
+            return {
+                teammate: duo.teammate,
+                wins: duo.wins,
+                losses: duo.losses,
+                games: duo.games,
+                winRate: duo.winRate.toFixed(1)
+            };
+        }
+        
+        const pair = [player1, player2].sort().join(' & ');
+        const statsMap = isMonthly ? this.monthlyTeammateStats : this.teammateStats;
+        const stats = statsMap.get(pair);
+        
+        if (!stats || stats.games < minGames) {
+            return null;
+        }
+        
+        // Return the other player as teammate
+        const pairPlayers = pair.split(' & ');
+        const teammate = pairPlayers[0].toLowerCase() === player1.toLowerCase() ? pairPlayers[1] : pairPlayers[0];
+        
+        return {
+            teammate: teammate,
+            wins: stats.wins,
+            losses: stats.losses,
+            games: stats.games,
+            winRate: (stats.wins / stats.games * 100).toFixed(1)
+        };
+    }
+
+    // Get all player names
+    getAllPlayerNames() {
+        return Array.from(this.playerStats.keys()).sort();
+    }
+
+    // Get opponent stats for a specific player
+    getOpponentStats(playerName, minGames = 1, isMonthly = false) {
+        const opponents = [];
+        const playerLower = playerName.toLowerCase();
+        const statsMap = isMonthly ? this.monthlyOpponentStats : this.opponentStats;
+        
+        statsMap.forEach((stats, key) => {
+            if (stats.player.toLowerCase() === playerLower && stats.games >= minGames) {
+                const winRate = stats.games > 0 
+                    ? (stats.wins / stats.games * 100).toFixed(1) 
+                    : 0;
+                
+                opponents.push({
+                    opponent: stats.opponent,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    games: stats.games,
+                    winRate: parseFloat(winRate)
+                });
+            }
+        });
+        
+        return opponents;
+    }
+
+    // Get top 5 opponents (best win rate against)
+    getTopOpponents(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        const opponents = this.getOpponentStats(playerName, minGames, isMonthly, selectedMonth, selectedYear);
+        return opponents
+            .sort((a, b) => {
+                if (b.winRate !== a.winRate) {
+                    return b.winRate - a.winRate;
+                }
+                return b.games - a.games;
+            })
+            .slice(0, 5);
+    }
+
+    // Get bottom 5 opponents (worst win rate against)
+    getBottomOpponents(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        const opponents = this.getOpponentStats(playerName, minGames, isMonthly, selectedMonth, selectedYear);
+        return opponents
+            .sort((a, b) => {
+                if (a.winRate !== b.winRate) {
+                    return a.winRate - b.winRate;
+                }
+                return b.games - a.games;
+            })
+            .slice(0, 5);
+    }
+
+    // Get win rate against specific opponent
+    getOpponentWinRate(playerName, opponentName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        if (isMonthly && selectedMonth !== null && selectedYear !== null) {
+            // Calculate on the fly for selected month
+            const opponents = this.getOpponentStats(playerName, minGames, isMonthly, selectedMonth, selectedYear);
+            const opponent = opponents.find(o => o.opponent.toLowerCase() === opponentName.toLowerCase());
+            if (!opponent) return null;
+            return {
+                opponent: opponent.opponent,
+                wins: opponent.wins,
+                losses: opponent.losses,
+                games: opponent.games,
+                winRate: opponent.winRate.toFixed(1)
+            };
+        }
+        
+        const key = `${playerName.toLowerCase()}|${opponentName.toLowerCase()}`;
+        const statsMap = isMonthly ? this.monthlyOpponentStats : this.opponentStats;
+        const stats = statsMap.get(key);
+        
+        if (!stats || stats.games < minGames) {
+            return null;
+        }
+        
+        return {
+            opponent: stats.opponent,
+            wins: stats.wins,
+            losses: stats.losses,
+            games: stats.games,
+            winRate: (stats.wins / stats.games * 100).toFixed(1)
+        };
     }
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Game Stats Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Game Stats Dashboard</h1>
+            <p class="subtitle">Player statistics and analytics</p>
+        </header>
+
+        <div id="summaryCards" class="summary-cards"></div>
+
+        <div class="view-selector">
+            <button class="view-btn active" data-view="players">
+                👤 Player Stats
+            </button>
+            <button class="view-btn" data-view="teammates">
+                🤝 Teammate Stats
+            </button>
+            <button class="view-btn" data-view="plusminus">
+                ➕➖ Plus/Minus
+            </button>
+        </div>
+
+        <div id="statsContainer" class="stats-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading statistics...</p>
+            </div>
+        </div>
+
+        <div class="refresh-section">
+            <button id="refreshBtn" class="refresh-btn">🔄 Refresh Stats</button>
+            <p class="last-updated">Last updated: <span id="lastUpdate">Never</span></p>
+        </div>
+    </div>
+
+    <script src="data-processor.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

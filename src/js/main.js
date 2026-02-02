@@ -17,77 +17,8 @@ let rosterSortDirection = 'asc'; // 'asc' or 'desc'
 // Matchups lookup mode
 let lookupMode = 'against'; // 'with' or 'against'
 
-// Get profile picture path for a player
-function getProfilePicturePath(playerName) {
-    if (!playerName) return null;
-    
-    const name = playerName.toLowerCase().trim();
-    const basePath = 'src/assets/profile-pictures/';
-    
-    // Map of player names to their actual file names (handles special cases)
-    const nameMappings = {
-        'delta': 'delta_cropped.png',
-        'epicjab': 'epicjab_cropped.png',
-        'stella': 'cropped_stella.png',
-        'kami': 'cropped-kami.png',
-        'mai': 'mai.png',
-        'vv': 'vv.png',
-        'baps': 'cropped-baps.png',
-        'anon': 'cropped-anon.png',
-        'ash': 'cropped-ash.png',
-        'aster': 'cropped-aster.png',
-        'bix': 'cropped-bix.png',
-        'danny': 'cropped-danny.png',
-        'e': 'cropped-e.png',
-        'ella': 'cropped-ella.png',
-        'ema': 'cropped-ema.png',
-        'eri': 'cropped-eri.png',
-        'gentle': 'cropped-gentle.png',
-        'hawk': 'cropped-hawk.png',
-        'jib': 'cropped-jib.png',
-        'jinsye': 'cropped-jinsye.png',
-        'kaif': 'cropped-kaif.png',
-        'lala': 'cropped-lala.png',
-        'nae': 'cropped-nae.png',
-        'neptune': 'cropped-neptune.png',
-        'pike': 'cropped-pike.png',
-        'popop': 'cropped-popop.png',
-        'rob': 'cropped-rob.png',
-        'saber': 'cropped-saber.png',
-        'shan': 'cropped-shan.png',
-        'toph': 'cropped-toph.png',
-        'wraith': 'cropped-wraith.png',
-        'akil': 'cropped-akil.png'
-    };
-    
-    // Check if we have a direct mapping
-    if (nameMappings[name]) {
-        return basePath + nameMappings[name];
-    }
-    
-    // Try common patterns as fallback (most common pattern first)
-    // The browser's onerror handler will show placeholder if file doesn't exist
-    return basePath + `cropped-${name}.png`;
-}
-
-// Get player name with icon HTML
-function getPlayerNameWithIcon(playerName, size = 24, clickable = true) {
-    if (!playerName) return '';
-    
-    const picturePath = getProfilePicturePath(playerName);
-    const iconSize = `${size}px`;
-    const iconHtml = picturePath 
-        ? `<img src="${picturePath}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; margin-right: 0.5rem; vertical-align: middle;" onerror="this.style.display='none';">`
-        : '';
-    
-    const nameClass = clickable ? 'stat-player' : '';
-    const onClick = clickable ? `onclick="showPlayerProfile('${playerName.replace(/'/g, "\\'")}')"` : '';
-    
-    return `<span class="player-name-with-icon ${nameClass}" ${onClick}>
-        ${iconHtml}
-        <span>${playerName}</span>
-    </span>`;
-}
+// Profile picture functions are imported from profile-pictures.js
+// No need to redefine them here
 
 // Show loading state
 function showLoading() {
@@ -204,7 +135,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 28, true)}
+                            ${getPlayerNameWithIcon(player.name, 36, true)}
                         </span>
                         <span class="stat-value">${player.winRate}%</span>
                     </li>
@@ -219,7 +150,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 28, true)}
+                            ${getPlayerNameWithIcon(player.name, 36, true)}
                         </span>
                         <span class="stat-value">${player.wins}</span>
                     </li>
@@ -234,7 +165,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 28, true)}
+                            ${getPlayerNameWithIcon(player.name, 36, true)}
                         </span>
                         <span class="stat-value">${player.losses}</span>
                     </li>
@@ -249,7 +180,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 28, true)}
+                            ${getPlayerNameWithIcon(player.name, 36, true)}
                         </span>
                         <span class="stat-value">${player.plusMinus > 0 ? '+' : ''}${player.plusMinus}</span>
                     </li>
@@ -517,8 +448,10 @@ function loadPlayersCarousel(players) {
     
     carousel.innerHTML = players.map((player, index) => {
         const picturePath = getProfilePicturePath(player.name);
+        // Use a static version number for cache-busting
+        const cacheBuster = picturePath ? '?v=2' : '';
         const imageHtml = picturePath 
-            ? `<img src="${picturePath}" alt="${player.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';">`
+            ? `<img src="${picturePath}${cacheBuster}" alt="${player.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';">`
             : '';
         
         return `
@@ -639,7 +572,7 @@ function loadRosterTable(players) {
     tbody.innerHTML = players.map(player => `
         <tr data-player-name="${player.name.replace(/"/g, '&quot;')}">
             <td class="player-cell">
-                ${getPlayerNameWithIcon(player.name, 20, true)}
+                ${getPlayerNameWithIcon(player.name, 32, true)}
             </td>
             <td>${player.wins}</td>
             <td>${player.losses}</td>
@@ -783,7 +716,9 @@ function loadPlayerProfile(playerName) {
     if (profilePicture) {
         const picturePath = getProfilePicturePath(playerName);
         if (picturePath) {
-            profilePicture.innerHTML = `<img src="${picturePath}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.parentElement.innerHTML='<div style=\\'color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; text-align: center;\\'>Profile Picture</div>'">`;
+            // Use a static version number for cache-busting
+            const cacheBuster = '?v=2';
+            profilePicture.innerHTML = `<img src="${picturePath}${cacheBuster}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.parentElement.innerHTML='<div style=\\'color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; text-align: center;\\'>Profile Picture</div>'">`;
         }
     }
     
@@ -974,7 +909,7 @@ function loadSynergy(playerName) {
             mostTeamedList.innerHTML = sortedDuos.map(duo => `
                 <div class="most-teamed-item">
                     <div class="most-teamed-player">
-                        ${getPlayerNameWithIcon(duo.teammate, 28, true)}
+                        ${getPlayerNameWithIcon(duo.teammate, 36, true)}
                     </div>
                     <div class="most-teamed-stats">
                         <div class="most-teamed-games">${duo.games} G</div>

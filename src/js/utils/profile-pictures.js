@@ -11,7 +11,7 @@ function getProfilePicturePath(playerName) {
     const nameMappings = {
         'delta': 'delta_cropped.png',
         'epicjab': 'epicjab_cropped.png',
-        'stella': 'cropped_stella.png',
+        'stella': 'cropped-stella.png',
         'kami': 'cropped-kami.png',
         'mai': 'mai.png',
         'vv': 'vv.png',
@@ -59,8 +59,10 @@ function getPlayerNameWithIcon(playerName, size = 32, clickable = true) {
     
     const picturePath = getProfilePicturePath(playerName);
     const iconSize = `${size}px`;
+    // Use a static version number for cache-busting (update this when images change)
+    const cacheBuster = picturePath ? '?v=2' : '';
     const iconHtml = picturePath 
-        ? `<img src="${picturePath}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; margin-right: 0.5rem; vertical-align: middle; display: inline-block;" onerror="this.style.display='none';">`
+        ? `<img src="${picturePath}${cacheBuster}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; margin-right: 0.5rem; vertical-align: middle; display: inline-block;">`
         : '';
     
     const nameClass = clickable ? 'stat-player' : '';

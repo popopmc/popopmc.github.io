@@ -15,3 +15,8 @@ npm-debug.log*
 
 # Dependencies
 node_modules/
+
+# Sensitive files
+Untitled
+*.token
+*.key

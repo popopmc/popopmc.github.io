@@ -5,23 +5,56 @@
 }
 
 :root {
-    --nav-bg: #2c2c2c;
+    /* Color Palette */
+    --color-pink: #f7cfd8;
+    --color-cream: #f4f8d3;
+    --color-mint: #a6d6d6;
+    --color-purple: #8e7dbe;
+    
+    /* Navigation */
+    --nav-bg: #8e7dbe;
     --nav-text: #ffffff;
-    --banner-bg: #000000;
+    
+    /* Banner */
+    --banner-bg: #8e7dbe;
     --banner-text: #ffffff;
-    --accent-yellow: #ffd700;
+    
+    /* Accents */
+    --accent-yellow: #f4f8d3;
+    --accent-pink: #f7cfd8;
+    --accent-mint: #a6d6d6;
+    --accent-purple: #8e7dbe;
+    
+    /* Backgrounds */
     --content-bg: #ffffff;
-    --text-primary: #000000;
+    --stat-bg: #f4f8d3;
+    --hover-bg: #f7cfd8;
+    
+    /* Text */
+    --text-primary: #2c2c2c;
     --text-secondary: #666666;
-    --border-color: #e0e0e0;
-    --tab-active: #2c2c2c;
+    
+    /* Borders */
+    --border-color: #a6d6d6;
+    
+    /* Tabs */
+    --tab-active: #8e7dbe;
     --tab-inactive: #ffffff;
-    --stat-bg: #f8f8f8;
+    
+    /* Status Colors */
+    --success: #a6d6d6;
+    --danger: #f7cfd8;
+    
+    /* Shadows */
+    --shadow-light: 0 2px 8px rgba(142, 125, 190, 0.1);
+    --shadow-medium: 0 4px 12px rgba(142, 125, 190, 0.15);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--content-bg);
+    background: linear-gradient(180deg, var(--color-pink) 0%, var(--color-cream) 25%, var(--color-mint) 50%, var(--color-purple) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
     color: var(--text-primary);
     line-height: 1.6;
 }
@@ -48,6 +81,16 @@ body {
     font-weight: 700;
     color: var(--nav-text);
     margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    display: block;
 }
 
 .nav-links {
@@ -107,9 +150,9 @@ body {
     min-width: 280px;
     width: 280px;
     flex-shrink: 0;
-    background: white;
+    background: var(--content-bg);
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-light);
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -117,13 +160,13 @@ body {
 
 .player-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-medium);
 }
 
 .player-card-image {
     width: 100%;
     height: 200px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-mint) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -149,7 +192,7 @@ body {
 }
 
 .player-card-info {
-    padding: 1.5rem;
+    padding: 1.75rem;
 }
 
 .player-card-name {
@@ -164,15 +207,17 @@ body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
+    padding: 0 0.25rem;
 }
 
 .player-stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0.75rem;
+    padding: 1rem 0.75rem;
     background: var(--stat-bg);
     border-radius: 8px;
+    margin: 0.25rem;
 }
 
 .player-stat-item .stat-label {
@@ -196,7 +241,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: white;
+    background: var(--content-bg);
     border: 2px solid var(--border-color);
     font-size: 1.2rem;
     cursor: pointer;
@@ -205,7 +250,7 @@ body {
     justify-content: center;
     z-index: 10;
     transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-light);
     user-select: none;
 }
 
@@ -261,10 +306,11 @@ body {
 }
 
 .roster-table-container {
-    background: white;
+    background: var(--content-bg);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-light);
+    padding: 1rem;
 }
 
 .roster-table {
@@ -277,7 +323,7 @@ body {
 }
 
 .roster-table th {
-    padding: 1rem;
+    padding: 1.25rem 1rem;
     text-align: left;
     font-weight: 600;
     color: var(--text-primary);
@@ -295,24 +341,24 @@ body {
 }
 
 .roster-table th.sortable:hover {
-    background-color: rgba(99, 102, 241, 0.1);
-    color: #6366f1;
+    background-color: rgba(142, 125, 190, 0.1);
+    color: var(--color-purple);
 }
 
 .roster-table th.sortable.sorted {
-    color: #6366f1;
-    background-color: rgba(99, 102, 241, 0.15);
+    color: var(--color-purple);
+    background-color: rgba(142, 125, 190, 0.15);
 }
 
 .roster-table th .sort-indicator {
     display: inline-block;
     margin-left: 0.5rem;
     font-weight: bold;
-    color: #6366f1;
+    color: var(--color-purple);
 }
 
 .roster-table td {
-    padding: 1rem;
+    padding: 1.25rem 1rem;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-secondary);
 }
@@ -331,7 +377,7 @@ body {
 }
 
 .player-name-link {
-    color: #0066cc;
+    color: var(--color-purple);
     text-decoration: none;
     cursor: pointer;
 }
@@ -359,6 +405,14 @@ body {
 .player-name-with-icon .player-icon {
     flex-shrink: 0;
     border-radius: 50%;
+}
+
+.player-name-with-icon.stat-player span:last-child {
+    text-decoration: none;
+}
+
+.player-name-with-icon.stat-player:hover span:last-child {
+    text-decoration: underline;
 }
 
 /* Game Log Page */
@@ -405,10 +459,10 @@ body {
 .game-log-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    background: var(--content-bg);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-light);
 }
 
 .game-log-table thead {
@@ -460,8 +514,16 @@ body {
     min-width: 60px;
 }
 
-.game-score.winner {
-    color: var(--success);
+.game-score.score-higher {
+    color: var(--color-mint);
+}
+
+.game-score.score-lower {
+    color: var(--color-pink);
+}
+
+.game-score.score-tie {
+    color: var(--text-secondary);
 }
 
 .game-result {
@@ -491,6 +553,8 @@ body {
 /* Players Section */
 .players-section {
     background: var(--content-bg);
+    padding: 2rem;
+    border-radius: 8px;
 }
 
 .section-header {
@@ -498,6 +562,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
 }
 
 .section-title {
@@ -507,7 +572,7 @@ body {
 }
 
 .see-all-link {
-    color: #0066cc;
+    color: var(--color-purple);
     text-decoration: none;
     font-size: 0.9rem;
 }
@@ -537,7 +602,7 @@ body {
 }
 
 .tab-btn:hover {
-    background: #f5f5f5;
+    background: var(--hover-bg);
 }
 
 .tab-btn.active {
@@ -561,15 +626,17 @@ body {
 
 .stat-category {
     background: var(--stat-bg);
-    padding: 1.5rem;
-    border-radius: 4px;
+    padding: 1.75rem;
+    border-radius: 8px;
 }
 
 .stat-category-title {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -582,7 +649,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0.5rem;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -617,6 +684,8 @@ body {
 /* Sidebar */
 .sidebar {
     background: var(--content-bg);
+    padding: 2rem;
+    border-radius: 8px;
     position: sticky;
     top: 2rem;
     align-self: start;
@@ -624,6 +693,11 @@ body {
 
 .sidebar-section {
     margin-bottom: 2rem;
+    padding: 0 0.5rem;
+}
+
+.sidebar-section:last-child {
+    margin-bottom: 0;
 }
 
 .sidebar-title {
@@ -636,11 +710,13 @@ body {
 .more-stats-list {
     max-height: 400px;
     overflow-y: auto;
+    padding: 0.5rem 0;
 }
 
 .more-stat-item {
-    padding: 0.75rem 0;
+    padding: 0.875rem 0.75rem;
     border-bottom: 1px solid var(--border-color);
+    margin: 0 0.5rem;
 }
 
 .more-stat-item:last-child {
@@ -704,7 +780,7 @@ body {
 }
 
 .refresh-btn:hover {
-    background: #1a1a1a;
+    background: var(--color-purple);
 }
 
 .refresh-btn:disabled {
@@ -729,9 +805,9 @@ body {
 }
 
 .profile-header {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-mint) 100%);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: 2rem 2.5rem;
     position: relative;
     border-bottom: 3px solid var(--accent-yellow);
 }
@@ -747,8 +823,9 @@ body {
 .profile-top-section {
     display: grid;
     grid-template-columns: 200px 1fr;
-    gap: 2rem;
+    gap: 2.5rem;
     align-items: start;
+    padding: 0.5rem 0;
 }
 
 .profile-picture-container {
@@ -805,8 +882,9 @@ body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
     max-width: 400px;
+    padding: 0.5rem;
 }
 
 .profile-description {
@@ -821,7 +899,7 @@ body {
 .profile-stat-box {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
-    padding: 0.5rem 1rem;
+    padding: 1rem 1.25rem;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     min-width: 100px;
@@ -842,7 +920,7 @@ body {
 
 .profile-tabs {
     display: flex;
-    background: white;
+    background: var(--content-bg);
     border-bottom: 2px solid var(--border-color);
     padding: 0 2rem;
 }
@@ -867,7 +945,7 @@ body {
 }
 
 .period-tab:hover {
-    background: #f5f5f5;
+    background: var(--hover-bg);
 }
 
 .period-tab.active {
@@ -897,7 +975,7 @@ body {
     font-size: 1rem;
     border: 2px solid var(--border-color);
     border-radius: 4px;
-    background: white;
+    background: var(--content-bg);
     color: var(--text-primary);
     min-width: 200px;
 }
@@ -929,28 +1007,117 @@ body {
 }
 
 .profile-content {
-    padding: 2rem;
-    background: white;
+    padding: 2.5rem;
+    background: var(--content-bg);
 }
 
 .synergy-section,
 .matchups-section {
     margin-bottom: 3rem;
+    padding: 0 0.5rem;
 }
 
 .synergy-lists-container,
 .matchups-lists-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 2rem;
     margin-bottom: 2rem;
 }
 
 .synergy-top,
 .synergy-bottom,
+.synergy-most-teamed,
 .matchups-top,
 .matchups-bottom {
     margin-bottom: 0;
+    padding: 1.5rem;
+    background: var(--stat-bg);
+    border-radius: 8px;
+}
+
+.synergy-most-teamed {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-left: 2rem;
+    border-left: 2px solid var(--border-color);
+    margin-left: 1rem;
+}
+
+.most-teamed-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 600px;
+    padding-right: 0.5rem;
+}
+
+.most-teamed-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.most-teamed-list::-webkit-scrollbar-track {
+    background: var(--content-bg);
+    border-radius: 4px;
+}
+
+.most-teamed-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.most-teamed-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+.most-teamed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    background: var(--stat-bg);
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.most-teamed-item:hover {
+    background: var(--hover-bg);
+}
+
+.most-teamed-player {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.most-teamed-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.most-teamed-games {
+    color: var(--text-secondary);
+    min-width: 50px;
+    text-align: right;
+}
+
+.most-teamed-winrate {
+    font-weight: 600;
+    min-width: 60px;
+    text-align: right;
+}
+
+.most-teamed-winrate.positive {
+    color: var(--color-mint);
+}
+
+.most-teamed-winrate.negative {
+    color: var(--color-pink);
 }
 
 .opponent-lookup-section {
@@ -964,20 +1131,21 @@ body {
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .duo-list {
-    background: var(--stat-bg);
-    border-radius: 8px;
-    padding: 1rem;
+    padding: 0.5rem 0;
 }
 
 .duo-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 0.875rem 0.75rem;
+    margin: 0 0.5rem;
     border-bottom: 1px solid var(--border-color);
     transition: background 0.2s;
 }
@@ -1025,11 +1193,11 @@ body {
 }
 
 .duo-winrate.positive {
-    color: #10b981;
+    color: var(--color-mint);
 }
 
 .duo-winrate.negative {
-    color: #ef4444;
+    color: var(--color-pink);
 }
 
 .duo-lookup-section {
@@ -1085,7 +1253,7 @@ body {
     font-size: 1rem;
     border: 2px solid var(--border-color);
     border-radius: 4px;
-    background: white;
+    background: var(--content-bg);
     color: var(--text-primary);
 }
 
@@ -1107,12 +1275,12 @@ body {
 }
 
 .lookup-btn:hover {
-    background: #1a1a1a;
+    background: var(--color-purple);
 }
 
 .lookup-result {
     padding: 1.5rem;
-    background: white;
+    background: var(--content-bg);
     border-radius: 8px;
     border: 2px solid var(--border-color);
     min-height: 100px;
@@ -1179,19 +1347,20 @@ body {
 }
 
 .back-btn:hover {
-    background: #1a1a1a;
+    background: var(--color-purple);
 }
 
 /* Make player names clickable */
 .stat-player {
     cursor: pointer;
-    color: #0066cc;
-    text-decoration: underline;
-    transition: color 0.2s;
+    color: var(--color-purple);
+    text-decoration: none;
+    transition: color 0.2s, text-decoration 0.2s;
 }
 
 .stat-player:hover {
-    color: #004499;
+    color: #6b5a9e;
+    text-decoration: underline;
 }
 
 /* Responsive Design */
@@ -1319,6 +1488,19 @@ body {
     .matchups-lists-container {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+    
+    .synergy-most-teamed {
+        padding-left: 0;
+        border-left: none;
+        margin-left: 0;
+        border-top: 2px solid var(--border-color);
+        padding-top: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .most-teamed-list {
+        max-height: 400px;
     }
 
     .game-log-page {

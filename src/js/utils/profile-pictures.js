@@ -54,7 +54,7 @@ function getProfilePicturePath(playerName) {
 }
 
 // Get player name with icon HTML
-function getPlayerNameWithIcon(playerName, size = 24, clickable = true) {
+function getPlayerNameWithIcon(playerName, size = 32, clickable = true) {
     if (!playerName) return '';
     
     const picturePath = getProfilePicturePath(playerName);

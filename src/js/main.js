@@ -204,7 +204,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 20, true)}
+                            ${getPlayerNameWithIcon(player.name, 28, true)}
                         </span>
                         <span class="stat-value">${player.winRate}%</span>
                     </li>
@@ -213,13 +213,13 @@ function displayStats() {
         </div>
 
         <div class="stat-category">
-            <h3 class="stat-category-title">Wins</h3>
+            <h3 class="stat-category-title">SUPERTEAM MERCHANTS</h3>
             <ul class="stat-list">
                 ${winsLeaders.map((player, index) => `
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 20, true)}
+                            ${getPlayerNameWithIcon(player.name, 28, true)}
                         </span>
                         <span class="stat-value">${player.wins}</span>
                     </li>
@@ -228,13 +228,13 @@ function displayStats() {
         </div>
 
         <div class="stat-category">
-            <h3 class="stat-category-title">Losses</h3>
+            <h3 class="stat-category-title">MENTALITY MONSTERS</h3>
             <ul class="stat-list">
                 ${lossesLeaders.map((player, index) => `
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 20, true)}
+                            ${getPlayerNameWithIcon(player.name, 28, true)}
                         </span>
                         <span class="stat-value">${player.losses}</span>
                     </li>
@@ -249,7 +249,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            ${getPlayerNameWithIcon(player.name, 20, true)}
+                            ${getPlayerNameWithIcon(player.name, 28, true)}
                         </span>
                         <span class="stat-value">${player.plusMinus > 0 ? '+' : ''}${player.plusMinus}</span>
                     </li>
@@ -405,11 +405,13 @@ function loadGameLog() {
     // Group games by date
     const gamesByDate = {};
     games.forEach(game => {
+        // Parse UTC timestamp and convert to user's local timezone
         const date = new Date(game.timestamp);
-        const dateKey = date.toLocaleDateString('en-US', { 
+        const dateKey = date.toLocaleDateString(undefined, { 
             year: 'numeric', 
             month: 'long', 
-            day: 'numeric' 
+            day: 'numeric',
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
         });
         
         if (!gamesByDate[dateKey]) {
@@ -430,32 +432,39 @@ function loadGameLog() {
                             <th>Time</th>
                             <th>Team 1</th>
                             <th>Score</th>
-                            <th>Team 2</th>
                             <th>Score</th>
+                            <th>Team 2</th>
                             <th>Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${dateGames.map(game => {
+                            // Parse UTC timestamp and convert to user's local timezone
                             const gameDate = new Date(game.timestamp);
-                            const timeStr = gameDate.toLocaleTimeString('en-US', { 
+                            const timeStr = gameDate.toLocaleTimeString(undefined, { 
                                 hour: '2-digit', 
-                                minute: '2-digit' 
+                                minute: '2-digit',
+                                timeZoneName: 'short'
                             });
                             const team1Won = game.team1.score > game.team2.score;
                             const team2Won = game.team2.score > game.team1.score;
+                            
+                            const team1Score = game.team1.score;
+                            const team2Score = game.team2.score;
+                            const team1ScoreClass = team1Score > team2Score ? 'score-higher' : team1Score < team2Score ? 'score-lower' : 'score-tie';
+                            const team2ScoreClass = team2Score > team1Score ? 'score-higher' : team2Score < team1Score ? 'score-lower' : 'score-tie';
                             
                             return `
                                 <tr>
                                     <td class="game-time">${timeStr}</td>
                                     <td class="game-team">
-                                        ${game.team1.players.map(p => getPlayerNameWithIcon(p, 18, true)).join(', ')}
+                                        ${game.team1.players.map(p => getPlayerNameWithIcon(p, 24, true)).join(', ')}
                                     </td>
-                                    <td class="game-score ${team1Won ? 'winner' : ''}">${game.team1.score}</td>
+                                    <td class="game-score ${team1ScoreClass}">${team1Score}</td>
+                                    <td class="game-score ${team2ScoreClass}">${team2Score}</td>
                                     <td class="game-team">
-                                        ${game.team2.players.map(p => getPlayerNameWithIcon(p, 18, true)).join(', ')}
+                                        ${game.team2.players.map(p => getPlayerNameWithIcon(p, 24, true)).join(', ')}
                                     </td>
-                                    <td class="game-score ${team2Won ? 'winner' : ''}">${game.team2.score}</td>
                                     <td class="game-result">
                                         ${team1Won ? `<span class="result-win">Team 1 Wins</span>` : 
                                           team2Won ? `<span class="result-win">Team 2 Wins</span>` : 
@@ -792,7 +801,7 @@ function loadPlayerProfile(playerName) {
             </div>
             <div class="profile-stat-box">
                 <div class="profile-stat-label">Win Rate</div>
-                <div class="profile-stat-value">${player.winRate}%</div>
+                <div class="profile-stat-value">${typeof player.winRate === 'number' ? player.winRate.toFixed(1) : player.winRate}%</div>
             </div>
             <div class="profile-stat-box">
                 <div class="profile-stat-label">Games</div>
@@ -892,7 +901,7 @@ function loadSynergy(playerName) {
         } else {
             topDuosList.innerHTML = topDuos.map(duo => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${getPlayerNameWithIcon(duo.teammate, 18, true)}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(duo.teammate, 24, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -924,7 +933,7 @@ function loadSynergy(playerName) {
         } else {
             bottomDuosList.innerHTML = bottomDuos.map(duo => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${getPlayerNameWithIcon(duo.teammate, 18, true)}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(duo.teammate, 24, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -939,6 +948,37 @@ function loadSynergy(playerName) {
                             <div class="duo-stat-value">${duo.losses}</div>
                         </div>
                         <div class="duo-winrate ${duo.winRate >= 50 ? 'positive' : 'negative'}">
+                            ${duo.winRate}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    // Load most teamed with list (sorted by games played)
+    const allDuos = statsProcessor.getPlayerDuoStats(playerName, 1, isMonthly, synergySelectedMonth, synergySelectedYear);
+    const mostTeamedList = document.getElementById('mostTeamedList');
+    if (mostTeamedList) {
+        if (allDuos.length === 0) {
+            mostTeamedList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No teammate data available</p>';
+        } else {
+            // Sort by games played (descending), then by win rate
+            const sortedDuos = allDuos.sort((a, b) => {
+                if (b.games !== a.games) {
+                    return b.games - a.games;
+                }
+                return b.winRate - a.winRate;
+            });
+            
+            mostTeamedList.innerHTML = sortedDuos.map(duo => `
+                <div class="most-teamed-item">
+                    <div class="most-teamed-player">
+                        ${getPlayerNameWithIcon(duo.teammate, 28, true)}
+                    </div>
+                    <div class="most-teamed-stats">
+                        <div class="most-teamed-games">${duo.games} G</div>
+                        <div class="most-teamed-winrate ${duo.winRate >= 50 ? 'positive' : 'negative'}">
                             ${duo.winRate}%
                         </div>
                     </div>
@@ -961,7 +1001,7 @@ function loadMatchups(playerName) {
         } else {
             topOpponentsList.innerHTML = topOpponents.map(opponent => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${getPlayerNameWithIcon(opponent.opponent, 18, true)}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(opponent.opponent, 24, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -993,7 +1033,7 @@ function loadMatchups(playerName) {
         } else {
             bottomOpponentsList.innerHTML = bottomOpponents.map(opponent => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${getPlayerNameWithIcon(opponent.opponent, 18, true)}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(opponent.opponent, 24, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -1039,12 +1079,12 @@ function handleOpponentLookup() {
     if (lookupMode === 'with') {
         // Lookup win rate WITH player (as teammate)
         stats = statsProcessor.getDuoWinRate(currentPlayerName, selectedPlayer, 1, isMonthly, matchupsSelectedMonth, matchupsSelectedYear);
-        title = `${getPlayerNameWithIcon(currentPlayerName.toUpperCase(), 20, false)} & ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 20, false)}`;
+        title = `${getPlayerNameWithIcon(currentPlayerName.toUpperCase(), 28, false)} & ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}`;
         noGamesMsg = 'No games played together (minimum 1 game required)';
     } else {
         // Lookup win rate AGAINST player (as opponent)
         stats = statsProcessor.getOpponentWinRate(currentPlayerName, selectedPlayer, 1, isMonthly, matchupsSelectedMonth, matchupsSelectedYear);
-        title = `${getPlayerNameWithIcon(currentPlayerName.toUpperCase(), 20, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 20, false)}`;
+        title = `${getPlayerNameWithIcon(currentPlayerName.toUpperCase(), 28, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}`;
         noGamesMsg = 'No games played against this player (minimum 1 game required)';
     }
     

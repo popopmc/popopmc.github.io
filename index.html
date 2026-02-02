@@ -12,12 +12,14 @@
 <body>
     <nav class="top-nav">
         <div class="nav-container">
-            <span class="nav-logo">STATS</span>
+            <span class="nav-logo">
+                <img src="src/assets/profile-pictures/vv.png" alt="VV Logo" class="nav-logo-img">
+                PUB STATS
+            </span>
             <div class="nav-links">
                 <a href="#" class="nav-link" onclick="goBackHome(); return false;">Stats Home</a>
                 <a href="#" class="nav-link" onclick="showPlayersPage(); return false;">Players</a>
                 <a href="#" class="nav-link" onclick="showGameLogPage(); return false;">Game Log</a>
-                <a href="#" class="nav-link">Leaders</a>
             </div>
         </div>
     </nav>
@@ -37,7 +39,7 @@
     <!-- Players Page -->
     <div class="players-page" id="playersPage" style="display: none;">
         <div class="players-page-header">
-            <h2 class="players-page-title">MY PLAYERS</h2>
+            <h2 class="players-page-title">BONK NATION</h2>
         </div>
         
         <div class="players-carousel-container">
@@ -93,7 +95,7 @@
         <div class="main-content">
             <div class="players-section">
                 <div class="section-header">
-                    <h2 class="section-title">PLAYERS</h2>
+                    <h2 class="section-title">BONK NATION</h2>
                     <div class="section-controls">
                         <a href="#" class="see-all-link" onclick="showPlayersPage(); return false;">See All Player Stats</a>
                     </div>
@@ -175,6 +177,12 @@
                     <div class="synergy-bottom">
                         <h3 class="synergy-title">Bottom 5 Win Rates with Duos</h3>
                         <div class="duo-list" id="bottomDuosList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="synergy-most-teamed">
+                        <h3 class="synergy-title">Most Teamed With</h3>
+                        <div class="most-teamed-list" id="mostTeamedList">
                             <!-- Will be populated by JavaScript -->
                         </div>
                     </div>

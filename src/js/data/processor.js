@@ -8,6 +8,7 @@ class StatsProcessor {
         this.monthlyTeammateStats = new Map();
         this.opponentStats = new Map(); // For tracking win rates against opponents
         this.monthlyOpponentStats = new Map(); // For monthly opponent stats
+        this.seenGames = new Set(); // Track seen games across all CSV files to prevent duplicates
     }
 
     // Parse CSV data
@@ -15,15 +16,16 @@ class StatsProcessor {
         const lines = csvText.trim().split('\n');
         const headers = lines[0].split(',');
         
-        // Clear games array unless appending
+        // Clear games array and seen games set unless appending
         if (!append) {
             this.games = [];
+            this.seenGames.clear();
         }
         
-        // Start from line 1 (skip header) when appending, or line 1 for new parse
-        const startLine = append ? 1 : 1;
+        let duplicatesFound = 0;
         
-        for (let i = startLine; i < lines.length; i++) {
+        // Start from line 1 (skip header)
+        for (let i = 1; i < lines.length; i++) {
             const values = this.parseCSVLine(lines[i]);
             if (values.length < 9) continue;
             
@@ -46,8 +48,33 @@ class StatsProcessor {
             // Only add games with valid scores and at least one player per team
             if (game.team1.players.length > 0 && game.team2.players.length > 0 && 
                 (game.team1.score >= 0 && game.team2.score >= 0)) {
-                this.games.push(game);
+                
+                // Create unique key for duplicate detection
+                // Sort players for consistent duplicate detection (same game with different player order)
+                const team1Key = [...game.team1.players].sort().join(',');
+                const team2Key = [...game.team2.players].sort().join(',');
+                
+                // Create keys for both possible team orders (team1 vs team2 and team2 vs team1)
+                // This catches duplicates where the same game was recorded with teams swapped
+                const gameKey1 = `${game.timestamp}|${team1Key}|${game.team1.score}|${team2Key}|${game.team2.score}`;
+                const gameKey2 = `${game.timestamp}|${team2Key}|${game.team2.score}|${team1Key}|${game.team1.score}`;
+                
+                // Check if we've seen this exact game before (same timestamp, teams, and scores)
+                // Only skip if it's an exact duplicate (prevents counting same game twice)
+                if (!this.seenGames.has(gameKey1) && !this.seenGames.has(gameKey2)) {
+                    this.seenGames.add(gameKey1);
+                    this.seenGames.add(gameKey2);
+                    this.games.push(game);
+                } else {
+                    // Duplicate found - log it for debugging
+                    duplicatesFound++;
+                    console.log(`Duplicate game skipped: ${game.timestamp} - ${team1Key} (${game.team1.score}) vs ${team2Key} (${game.team2.score})`);
+                }
             }
+        }
+        
+        if (duplicatesFound > 0) {
+            console.log(`Total duplicates found and skipped: ${duplicatesFound}`);
         }
     }
 
@@ -180,6 +207,7 @@ class StatsProcessor {
             this.monthlyStats.set(player, {
                 wins: 0,
                 losses: 0,
+                ties: 0,
                 goalsFor: 0,
                 goalsAgainst: 0,
                 plusMinus: 0
@@ -187,8 +215,14 @@ class StatsProcessor {
         }
         
         const stats = this.monthlyStats.get(player);
-        if (won) stats.wins++;
-        if (lost) stats.losses++;
+        if (won) {
+            stats.wins++;
+        } else if (lost) {
+            stats.losses++;
+        } else {
+            // Tie game
+            stats.ties++;
+        }
         stats.goalsFor += goalsFor;
         stats.goalsAgainst += goalsAgainst;
         stats.plusMinus = stats.goalsFor - stats.goalsAgainst;
@@ -200,6 +234,7 @@ class StatsProcessor {
             this.playerStats.set(player, {
                 wins: 0,
                 losses: 0,
+                ties: 0,
                 goalsFor: 0,
                 goalsAgainst: 0,
                 plusMinus: 0
@@ -207,8 +242,14 @@ class StatsProcessor {
         }
         
         const stats = this.playerStats.get(player);
-        if (won) stats.wins++;
-        if (lost) stats.losses++;
+        if (won) {
+            stats.wins++;
+        } else if (lost) {
+            stats.losses++;
+        } else {
+            // Tie game (neither won nor lost)
+            stats.ties++;
+        }
         stats.goalsFor += goalsFor;
         stats.goalsAgainst += goalsAgainst;
         stats.plusMinus = stats.goalsFor - stats.goalsAgainst;
@@ -240,18 +281,22 @@ class StatsProcessor {
     // Get player stats sorted by win rate (minimum games filter)
     getPlayerStats(minGames = 1) {
         const players = Array.from(this.playerStats.entries())
-            .map(([name, stats]) => ({
-                name,
-                wins: stats.wins,
-                losses: stats.losses,
-                games: stats.wins + stats.losses,
-                winRate: stats.wins + stats.losses > 0 
-                    ? (stats.wins / (stats.wins + stats.losses) * 100).toFixed(1) 
-                    : 0,
-                goalsFor: stats.goalsFor,
-                goalsAgainst: stats.goalsAgainst,
-                plusMinus: stats.plusMinus
-            }))
+            .map(([name, stats]) => {
+                const totalGames = stats.wins + stats.losses + (stats.ties || 0);
+                return {
+                    name,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    ties: stats.ties || 0,
+                    games: totalGames,
+                    winRate: totalGames > 0 
+                        ? (stats.wins / totalGames * 100).toFixed(1) 
+                        : 0,
+                    goalsFor: stats.goalsFor,
+                    goalsAgainst: stats.goalsAgainst,
+                    plusMinus: stats.plusMinus
+                };
+            })
             .filter(p => p.games >= minGames)
             .sort((a, b) => {
                 // Sort by win rate, then by games played
@@ -296,18 +341,22 @@ class StatsProcessor {
     // Get monthly player stats
     getMonthlyPlayerStats(minGames = 1) {
         const players = Array.from(this.monthlyStats.entries())
-            .map(([name, stats]) => ({
-                name,
-                wins: stats.wins,
-                losses: stats.losses,
-                games: stats.wins + stats.losses,
-                winRate: stats.wins + stats.losses > 0 
-                    ? (stats.wins / (stats.wins + stats.losses) * 100).toFixed(1) 
-                    : 0,
-                goalsFor: stats.goalsFor,
-                goalsAgainst: stats.goalsAgainst,
-                plusMinus: stats.plusMinus
-            }))
+            .map(([name, stats]) => {
+                const totalGames = stats.wins + stats.losses + (stats.ties || 0);
+                return {
+                    name,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    ties: stats.ties || 0,
+                    games: totalGames,
+                    winRate: totalGames > 0 
+                        ? (stats.wins / totalGames * 100).toFixed(1) 
+                        : 0,
+                    goalsFor: stats.goalsFor,
+                    goalsAgainst: stats.goalsAgainst,
+                    plusMinus: stats.plusMinus
+                };
+            })
             .filter(p => p.games >= minGames);
         
         return players;
@@ -343,9 +392,27 @@ class StatsProcessor {
 
     // Get player-specific stats
     getPlayerProfile(playerName) {
-        const allStats = this.getPlayerStats(1);
-        const player = allStats.find(p => p.name.toLowerCase() === playerName.toLowerCase());
-        return player || null;
+        // Get player stats directly from the map without filtering by minimum games
+        const playerNameLower = playerName.toLowerCase();
+        for (const [name, stats] of this.playerStats.entries()) {
+            if (name.toLowerCase() === playerNameLower) {
+                const totalGames = stats.wins + stats.losses + (stats.ties || 0);
+                return {
+                    name,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    ties: stats.ties || 0,
+                    games: totalGames,
+                    winRate: totalGames > 0 
+                        ? parseFloat((stats.wins / totalGames * 100).toFixed(1))
+                        : 0,
+                    goalsFor: stats.goalsFor,
+                    goalsAgainst: stats.goalsAgainst,
+                    plusMinus: stats.plusMinus
+                };
+            }
+        }
+        return null;
     }
 
     // Get duo stats for a specific player
@@ -499,10 +566,66 @@ class StatsProcessor {
     }
 
     // Get opponent stats for a specific player
-    getOpponentStats(playerName, minGames = 1, isMonthly = false) {
+    getOpponentStats(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
         const opponents = [];
         const playerLower = playerName.toLowerCase();
-        const statsMap = isMonthly ? this.monthlyOpponentStats : this.opponentStats;
+        let statsMap = isMonthly ? this.monthlyOpponentStats : this.opponentStats;
+        
+        // If monthly filtering with specific month/year, calculate on the fly
+        if (isMonthly && selectedMonth !== null && selectedYear !== null) {
+            const filteredStats = new Map();
+            this.games.forEach(game => {
+                const gameDate = new Date(game.timestamp);
+                const gameMonth = gameDate.getMonth();
+                const gameYear = gameDate.getFullYear();
+                
+                if (gameMonth === selectedMonth && gameYear === selectedYear) {
+                    const team1Won = game.team1.score > game.team2.score;
+                    const team2Won = game.team2.score > game.team1.score;
+                    
+                    // Process Team 1 players vs Team 2 players
+                    game.team1.players.forEach(player => {
+                        game.team2.players.forEach(opponent => {
+                            const key = `${player.toLowerCase()}|${opponent.toLowerCase()}`;
+                            if (!filteredStats.has(key)) {
+                                filteredStats.set(key, {
+                                    player: player,
+                                    opponent: opponent,
+                                    wins: 0,
+                                    losses: 0,
+                                    games: 0
+                                });
+                            }
+                            const stats = filteredStats.get(key);
+                            stats.games++;
+                            if (team1Won) stats.wins++;
+                            if (team2Won) stats.losses++;
+                        });
+                    });
+                    
+                    // Process Team 2 players vs Team 1 players
+                    game.team2.players.forEach(player => {
+                        game.team1.players.forEach(opponent => {
+                            const key = `${player.toLowerCase()}|${opponent.toLowerCase()}`;
+                            if (!filteredStats.has(key)) {
+                                filteredStats.set(key, {
+                                    player: player,
+                                    opponent: opponent,
+                                    wins: 0,
+                                    losses: 0,
+                                    games: 0
+                                });
+                            }
+                            const stats = filteredStats.get(key);
+                            stats.games++;
+                            if (team2Won) stats.wins++;
+                            if (team1Won) stats.losses++;
+                        });
+                    });
+                }
+            });
+            statsMap = filteredStats;
+        }
         
         statsMap.forEach((stats, key) => {
             if (stats.player.toLowerCase() === playerLower && stats.games >= minGames) {

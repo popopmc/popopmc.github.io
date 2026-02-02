@@ -50,10 +50,10 @@ timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,tea
 2026-02-02T05:01:16.202000+00:00,shan,pikeman,ash,4,aster,popop,hawk,5
 2026-02-02T05:09:18.805000+00:00,shan,pikeman,ash,4,aster,jinsye,hawk,5
 2026-02-02T05:15:59.865000+00:00,shan,jinsye,ash,5,pikeman,jinsye,hawk,4
-2026-02-02T10:33:12.690000+00:00,gentle,stella,nae,3,shan,popo,katie,5
-2026-02-02T10:37:57.976000+00:00,gentle,stella,nae,1,shan,popo,katie,5
-2026-02-02T10:42:01.862000+00:00,gentle,shan,nae,5,popo,katie,stella,1
-2026-02-02T10:46:27.059000+00:00,gentle,popo,katie,5,shan,nae,stella,2
-2026-02-02T10:50:13.570000+00:00,gentle,popo,katie,4,shan,nae,stella,5
-2026-02-02T10:52:32.497000+00:00,gentle,popo,katie,5,shan,nae,stella,0
-2026-02-02T10:57:45.100000+00:00,gentle,katie,stella,2,popo,shan,nae,5
+2026-02-02T10:33:12.690000+00:00,gentle,stella,nae,3,shan,popop,katie,5
+2026-02-02T10:37:57.976000+00:00,gentle,stella,nae,1,shan,popop,katie,5
+2026-02-02T10:42:01.862000+00:00,gentle,shan,nae,5,popop,katie,stella,1
+2026-02-02T10:46:27.059000+00:00,gentle,popop,katie,5,shan,nae,stella,2
+2026-02-02T10:50:13.570000+00:00,gentle,popop,katie,4,shan,nae,stella,5
+2026-02-02T10:52:32.497000+00:00,gentle,popop,katie,5,shan,nae,stella,0
+2026-02-02T10:57:45.100000+00:00,gentle,katie,stella,2,popop,shan,nae,5

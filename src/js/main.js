@@ -1,5 +1,6 @@
 // Stats Dashboard for Game Scores
-let statsProcessor = new StatsProcessor();
+// Initialize stats processor (will be set up after DOM loads)
+let statsProcessor = null;
 let currentPeriod = 'monthly'; // 'monthly' or 'alltime'
 let synergyPeriod = 'alltime'; // 'monthly' or 'alltime' for synergy section
 let matchupsPeriod = 'alltime'; // 'monthly' or 'alltime' for matchups section
@@ -15,6 +16,78 @@ let rosterSortDirection = 'asc'; // 'asc' or 'desc'
 
 // Matchups lookup mode
 let lookupMode = 'against'; // 'with' or 'against'
+
+// Get profile picture path for a player
+function getProfilePicturePath(playerName) {
+    if (!playerName) return null;
+    
+    const name = playerName.toLowerCase().trim();
+    const basePath = 'src/assets/profile-pictures/';
+    
+    // Map of player names to their actual file names (handles special cases)
+    const nameMappings = {
+        'delta': 'delta_cropped.png',
+        'epicjab': 'epicjab_cropped.png',
+        'stella': 'cropped_stella.png',
+        'kami': 'cropped-kami.png',
+        'mai': 'mai.png',
+        'vv': 'vv.png',
+        'baps': 'cropped-baps.png',
+        'anon': 'cropped-anon.png',
+        'ash': 'cropped-ash.png',
+        'aster': 'cropped-aster.png',
+        'bix': 'cropped-bix.png',
+        'danny': 'cropped-danny.png',
+        'e': 'cropped-e.png',
+        'ella': 'cropped-ella.png',
+        'ema': 'cropped-ema.png',
+        'eri': 'cropped-eri.png',
+        'gentle': 'cropped-gentle.png',
+        'hawk': 'cropped-hawk.png',
+        'jib': 'cropped-jib.png',
+        'jinsye': 'cropped-jinsye.png',
+        'kaif': 'cropped-kaif.png',
+        'lala': 'cropped-lala.png',
+        'nae': 'cropped-nae.png',
+        'neptune': 'cropped-neptune.png',
+        'pike': 'cropped-pike.png',
+        'popop': 'cropped-popop.png',
+        'rob': 'cropped-rob.png',
+        'saber': 'cropped-saber.png',
+        'shan': 'cropped-shan.png',
+        'toph': 'cropped-toph.png',
+        'wraith': 'cropped-wraith.png',
+        'akil': 'cropped-akil.png'
+    };
+    
+    // Check if we have a direct mapping
+    if (nameMappings[name]) {
+        return basePath + nameMappings[name];
+    }
+    
+    // Try common patterns as fallback (most common pattern first)
+    // The browser's onerror handler will show placeholder if file doesn't exist
+    return basePath + `cropped-${name}.png`;
+}
+
+// Get player name with icon HTML
+function getPlayerNameWithIcon(playerName, size = 24, clickable = true) {
+    if (!playerName) return '';
+    
+    const picturePath = getProfilePicturePath(playerName);
+    const iconSize = `${size}px`;
+    const iconHtml = picturePath 
+        ? `<img src="${picturePath}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; margin-right: 0.5rem; vertical-align: middle;" onerror="this.style.display='none';">`
+        : '';
+    
+    const nameClass = clickable ? 'stat-player' : '';
+    const onClick = clickable ? `onclick="showPlayerProfile('${playerName.replace(/'/g, "\\'")}')"` : '';
+    
+    return `<span class="player-name-with-icon ${nameClass}" ${onClick}>
+        ${iconHtml}
+        <span>${playerName}</span>
+    </span>`;
+}
 
 // Show loading state
 function showLoading() {
@@ -36,26 +109,43 @@ async function loadData() {
     try {
         // Add cache-busting parameter to force fresh data
         const cacheBuster = '?v=' + new Date().getTime();
-        const response = await fetch('scores_processed.csv' + cacheBuster, {
+        const fetchOptions = {
             cache: 'no-cache',
             headers: {
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0'
             }
-        });
+        };
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Load both CSV files
+        const [responseJan, responseFeb] = await Promise.all([
+            fetch('data/scoresjan.csv' + cacheBuster, fetchOptions),
+            fetch('data/scoresfeb.csv' + cacheBuster, fetchOptions)
+        ]);
+        
+        if (!responseJan.ok) {
+            throw new Error(`HTTP error loading scoresjan.csv! status: ${responseJan.status}`);
         }
         
-        const csvText = await response.text();
-        
-        if (!csvText || csvText.trim().length === 0) {
-            throw new Error('CSV file is empty');
+        if (!responseFeb.ok) {
+            throw new Error(`HTTP error loading scoresfeb.csv! status: ${responseFeb.status}`);
         }
         
-        statsProcessor.parseCSV(csvText);
+        const csvTextJan = await responseJan.text();
+        const csvTextFeb = await responseFeb.text();
+        
+        if (!csvTextJan || csvTextJan.trim().length === 0) {
+            throw new Error('scoresjan.csv file is empty');
+        }
+        
+        if (!csvTextFeb || csvTextFeb.trim().length === 0) {
+            throw new Error('scoresfeb.csv file is empty');
+        }
+        
+        // Parse both CSV files (first one clears games array, second one appends)
+        statsProcessor.parseCSV(csvTextJan, false);
+        statsProcessor.parseCSV(csvTextFeb, true);
         statsProcessor.calculateStats();
         
         displayStats();
@@ -69,7 +159,7 @@ async function loadData() {
             container.innerHTML = `
                 <div style="text-align: center; padding: 2rem; color: var(--text-primary);">
                     <h2 style="color: #ef4444; margin-bottom: 1rem;">Error Loading Data</h2>
-                    <p>Could not load scores_processed.csv. Make sure the file is in the same directory.</p>
+                    <p>Could not load data files (scoresjan.csv and scoresfeb.csv). Make sure the files exist.</p>
                     <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">${error.message}</p>
                     <button onclick="loadData()" class="refresh-btn" style="margin-top: 1rem;">🔄 Try Again</button>
                 </div>
@@ -114,7 +204,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            <span class="stat-player" onclick="showPlayerProfile('${player.name}')">${player.name}</span>
+                            ${getPlayerNameWithIcon(player.name, 20, true)}
                         </span>
                         <span class="stat-value">${player.winRate}%</span>
                     </li>
@@ -129,7 +219,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            <span class="stat-player" onclick="showPlayerProfile('${player.name}')">${player.name}</span>
+                            ${getPlayerNameWithIcon(player.name, 20, true)}
                         </span>
                         <span class="stat-value">${player.wins}</span>
                     </li>
@@ -144,7 +234,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            <span class="stat-player" onclick="showPlayerProfile('${player.name}')">${player.name}</span>
+                            ${getPlayerNameWithIcon(player.name, 20, true)}
                         </span>
                         <span class="stat-value">${player.losses}</span>
                     </li>
@@ -159,7 +249,7 @@ function displayStats() {
                     <li class="stat-item">
                         <span>
                             <span class="stat-rank">${index + 1}.</span>
-                            <span class="stat-player" onclick="showPlayerProfile('${player.name}')">${player.name}</span>
+                            ${getPlayerNameWithIcon(player.name, 20, true)}
                         </span>
                         <span class="stat-value">${player.plusMinus > 0 ? '+' : ''}${player.plusMinus}</span>
                     </li>
@@ -212,6 +302,7 @@ function switchPeriod(period) {
 function showPlayerProfile(playerName) {
     const homePage = document.getElementById('homePage');
     const playersPage = document.getElementById('playersPage');
+    const gameLogPage = document.getElementById('gameLogPage');
     const profilePage = document.getElementById('playerProfilePage');
     
     if (!profilePage) return;
@@ -219,6 +310,7 @@ function showPlayerProfile(playerName) {
     // Hide all other pages, show profile page
     if (homePage) homePage.style.display = 'none';
     if (playersPage) playersPage.style.display = 'none';
+    if (gameLogPage) gameLogPage.style.display = 'none';
     profilePage.style.display = 'block';
     
     // Load player data
@@ -236,12 +328,14 @@ function goBackHome() {
     const homePage = document.getElementById('homePage');
     const profilePage = document.getElementById('playerProfilePage');
     const playersPage = document.getElementById('playersPage');
+    const gameLogPage = document.getElementById('gameLogPage');
     
     if (!homePage) return;
     
     homePage.style.display = 'grid';
     if (profilePage) profilePage.style.display = 'none';
     if (playersPage) playersPage.style.display = 'none';
+    if (gameLogPage) gameLogPage.style.display = 'none';
     
     // Clear lookup result
     const lookupResult = document.getElementById('lookupResult');
@@ -257,12 +351,14 @@ function goBackHome() {
 function showPlayersPage() {
     const homePage = document.getElementById('homePage');
     const profilePage = document.getElementById('playerProfilePage');
+    const gameLogPage = document.getElementById('gameLogPage');
     const playersPage = document.getElementById('playersPage');
     
     if (!homePage || !playersPage) return;
     
     homePage.style.display = 'none';
     if (profilePage) profilePage.style.display = 'none';
+    if (gameLogPage) gameLogPage.style.display = 'none';
     playersPage.style.display = 'block';
     
     // Load players data
@@ -270,6 +366,111 @@ function showPlayersPage() {
     
     // Scroll to top
     window.scrollTo(0, 0);
+}
+
+// Show game log page
+function showGameLogPage() {
+    const homePage = document.getElementById('homePage');
+    const playersPage = document.getElementById('playersPage');
+    const profilePage = document.getElementById('playerProfilePage');
+    const gameLogPage = document.getElementById('gameLogPage');
+    
+    if (!gameLogPage) return;
+    
+    // Hide all other pages, show game log page
+    if (homePage) homePage.style.display = 'none';
+    if (playersPage) playersPage.style.display = 'none';
+    if (profilePage) profilePage.style.display = 'none';
+    gameLogPage.style.display = 'block';
+    
+    // Load game log data
+    loadGameLog();
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+// Load game log
+function loadGameLog() {
+    const gameLogContent = document.getElementById('gameLogContent');
+    if (!gameLogContent) return;
+    
+    const games = statsProcessor.getAllGames();
+    
+    if (games.length === 0) {
+        gameLogContent.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--text-secondary);">No games found</p>';
+        return;
+    }
+    
+    // Group games by date
+    const gamesByDate = {};
+    games.forEach(game => {
+        const date = new Date(game.timestamp);
+        const dateKey = date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        if (!gamesByDate[dateKey]) {
+            gamesByDate[dateKey] = [];
+        }
+        gamesByDate[dateKey].push(game);
+    });
+    
+    // Generate HTML for each date group
+    const html = Object.keys(gamesByDate).map(dateKey => {
+        const dateGames = gamesByDate[dateKey];
+        return `
+            <div class="game-log-date-section">
+                <h2 class="game-log-date-header">${dateKey}</h2>
+                <table class="game-log-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Team 1</th>
+                            <th>Score</th>
+                            <th>Team 2</th>
+                            <th>Score</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dateGames.map(game => {
+                            const gameDate = new Date(game.timestamp);
+                            const timeStr = gameDate.toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                            });
+                            const team1Won = game.team1.score > game.team2.score;
+                            const team2Won = game.team2.score > game.team1.score;
+                            
+                            return `
+                                <tr>
+                                    <td class="game-time">${timeStr}</td>
+                                    <td class="game-team">
+                                        ${game.team1.players.map(p => getPlayerNameWithIcon(p, 18, true)).join(', ')}
+                                    </td>
+                                    <td class="game-score ${team1Won ? 'winner' : ''}">${game.team1.score}</td>
+                                    <td class="game-team">
+                                        ${game.team2.players.map(p => getPlayerNameWithIcon(p, 18, true)).join(', ')}
+                                    </td>
+                                    <td class="game-score ${team2Won ? 'winner' : ''}">${game.team2.score}</td>
+                                    <td class="game-result">
+                                        ${team1Won ? `<span class="result-win">Team 1 Wins</span>` : 
+                                          team2Won ? `<span class="result-win">Team 2 Wins</span>` : 
+                                          '<span class="result-tie">Tie</span>'}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }).join('');
+    
+    gameLogContent.innerHTML = html;
 }
 
 // Load players page data
@@ -305,10 +506,16 @@ function loadPlayersCarousel(players) {
     const carousel = document.getElementById('playersCarousel');
     if (!carousel) return;
     
-    carousel.innerHTML = players.map((player, index) => `
+    carousel.innerHTML = players.map((player, index) => {
+        const picturePath = getProfilePicturePath(player.name);
+        const imageHtml = picturePath 
+            ? `<img src="${picturePath}" alt="${player.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';">`
+            : '';
+        
+        return `
         <div class="player-card" data-player-name="${player.name.replace(/"/g, '&quot;')}">
             <div class="player-card-image">
-                <!-- Profile picture placeholder -->
+                ${imageHtml}
             </div>
             <div class="player-card-info">
                 <div class="player-card-name">${player.name.toUpperCase()}</div>
@@ -332,7 +539,8 @@ function loadPlayersCarousel(players) {
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
     
     // Add click event listeners to all player cards
     carousel.querySelectorAll('.player-card').forEach(card => {
@@ -422,7 +630,7 @@ function loadRosterTable(players) {
     tbody.innerHTML = players.map(player => `
         <tr data-player-name="${player.name.replace(/"/g, '&quot;')}">
             <td class="player-cell">
-                <span class="player-name-link">${player.name}</span>
+                ${getPlayerNameWithIcon(player.name, 20, true)}
             </td>
             <td>${player.wins}</td>
             <td>${player.losses}</td>
@@ -534,7 +742,8 @@ function filterRosterTable() {
     const rows = tbody.querySelectorAll('tr');
     
     rows.forEach(row => {
-        const playerName = row.querySelector('.player-name-link')?.textContent.toLowerCase() || '';
+        const playerNameSpan = row.querySelector('.player-name-with-icon span:last-child');
+        const playerName = playerNameSpan?.textContent.toLowerCase() || '';
         if (playerName.includes(searchTerm)) {
             row.style.display = '';
         } else {
@@ -558,6 +767,15 @@ function loadPlayerProfile(playerName) {
     const profileName = document.getElementById('profileName');
     if (profileName) {
         profileName.textContent = playerName.toUpperCase();
+    }
+    
+    // Set profile picture
+    const profilePicture = document.getElementById('profilePicture');
+    if (profilePicture) {
+        const picturePath = getProfilePicturePath(playerName);
+        if (picturePath) {
+            profilePicture.innerHTML = `<img src="${picturePath}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.parentElement.innerHTML='<div style=\\'color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; text-align: center;\\'>Profile Picture</div>'">`;
+        }
     }
     
     // Set player stats
@@ -674,7 +892,7 @@ function loadSynergy(playerName) {
         } else {
             topDuosList.innerHTML = topDuos.map(duo => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${duo.teammate}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(duo.teammate, 18, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -706,7 +924,7 @@ function loadSynergy(playerName) {
         } else {
             bottomDuosList.innerHTML = bottomDuos.map(duo => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${duo.teammate}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(duo.teammate, 18, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -743,7 +961,7 @@ function loadMatchups(playerName) {
         } else {
             topOpponentsList.innerHTML = topOpponents.map(opponent => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${opponent.opponent}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(opponent.opponent, 18, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -775,7 +993,7 @@ function loadMatchups(playerName) {
         } else {
             bottomOpponentsList.innerHTML = bottomOpponents.map(opponent => `
                 <div class="duo-item">
-                    <div class="duo-teammate">${opponent.opponent}</div>
+                    <div class="duo-teammate">${getPlayerNameWithIcon(opponent.opponent, 18, true)}</div>
                     <div class="duo-stats">
                         <div class="duo-stat">
                             <div class="duo-stat-label">Games</div>
@@ -821,12 +1039,12 @@ function handleOpponentLookup() {
     if (lookupMode === 'with') {
         // Lookup win rate WITH player (as teammate)
         stats = statsProcessor.getDuoWinRate(currentPlayerName, selectedPlayer, 1, isMonthly, matchupsSelectedMonth, matchupsSelectedYear);
-        title = `${currentPlayerName.toUpperCase()} & ${selectedPlayer.toUpperCase()}`;
+        title = `${getPlayerNameWithIcon(currentPlayerName.toUpperCase(), 20, false)} & ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 20, false)}`;
         noGamesMsg = 'No games played together (minimum 1 game required)';
     } else {
         // Lookup win rate AGAINST player (as opponent)
         stats = statsProcessor.getOpponentWinRate(currentPlayerName, selectedPlayer, 1, isMonthly, matchupsSelectedMonth, matchupsSelectedYear);
-        title = `${currentPlayerName.toUpperCase()} vs ${selectedPlayer.toUpperCase()}`;
+        title = `${getPlayerNameWithIcon(currentPlayerName.toUpperCase(), 20, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 20, false)}`;
         noGamesMsg = 'No games played against this player (minimum 1 game required)';
     }
     
@@ -929,6 +1147,11 @@ function updateLastUpdated() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize stats processor
+    if (!statsProcessor) {
+        statsProcessor = new StatsProcessor();
+    }
+    
     loadData();
     
     // Add event listeners for tab buttons
@@ -1068,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.showPlayerProfile = showPlayerProfile;
     window.goBackHome = goBackHome;
     window.showPlayersPage = showPlayersPage;
+    window.showGameLogPage = showGameLogPage;
     
     updateLastUpdated();
 });

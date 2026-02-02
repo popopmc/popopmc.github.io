@@ -14,7 +14,7 @@ A modern, responsive statistics dashboard website for analyzing game scores, pla
 
 ## Data Format
 
-The website reads from `scores_processed.csv` with the following format:
+The website reads from `scoresjan.csv` and `scoresfeb.csv` in the `data/` folder with the following format:
 ```
 timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,team2_name3,score2
 ```
@@ -47,7 +47,7 @@ Each row represents a game with:
 
 ### ⚠️ Important: Updating Your CSV
 
-When you update `scores_processed.csv`, you need to redeploy for changes to show. See **QUICK_UPDATE.md** for the easiest ways to do this!
+When you update `scoresjan.csv` or `scoresfeb.csv`, you need to redeploy for changes to show. See **QUICK_UPDATE.md** for the easiest ways to do this!
 
 **Quick Summary:**
 - **Best**: Use Git-based deployment (auto-redeploys when you push)
@@ -64,7 +64,7 @@ When you update `scores_processed.csv`, you need to redeploy for changes to show
    - Log in to Netlify
    - Click "Add new site" → "Deploy manually"
    - Drag and drop your entire project folder (or zip it first)
-   - Make sure `scores_processed.csv` is included
+   - Make sure `scoresjan.csv` and `scoresfeb.csv` are included
    - Your site will be live in seconds!
 
 ### Option 2: Deploy via Git (Recommended for Updates)
@@ -91,8 +91,8 @@ When you update `scores_processed.csv`, you need to redeploy for changes to show
    - You can customize the domain name in site settings
 
 4. **Updating CSV is now automatic!**
-   - Just update `scores_processed.csv` locally
-   - Run: `git add scores_processed.csv && git commit -m "Update scores" && git push`
+   - Just update `scoresjan.csv` and/or `scoresfeb.csv` locally
+   - Run: `git add data/scoresjan.csv data/scoresfeb.csv && git commit -m "Update scores" && git push`
    - Netlify will automatically redeploy in ~30 seconds! 🎉
 
 ### Option 3: Deploy via Netlify CLI
@@ -116,7 +116,9 @@ website/
 ├── styles.css          # Styling
 ├── script.js           # Main JavaScript logic
 ├── data-processor.js   # CSV parser and stats calculator
-├── scores_processed.csv # Game data (CSV file)
+├── data/
+│   ├── scoresjan.csv # January game data
+│   └── scoresfeb.csv # February game data
 ├── netlify.toml        # Netlify configuration
 └── README.md           # This file
 ```
@@ -125,7 +127,7 @@ website/
 
 ### Update CSV Data
 
-Simply replace `scores_processed.csv` with your updated data file. The format should match:
+Simply update `scoresjan.csv` and/or `scoresfeb.csv` in the `data/` folder with your updated data. The format should match:
 ```
 timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,team2_name3,score2
 ```

@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Game Stats Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="src/css/main.css?v=4">
 </head>
 <body>
     <nav class="top-nav">
@@ -16,12 +16,23 @@
             <div class="nav-links">
                 <a href="#" class="nav-link" onclick="goBackHome(); return false;">Stats Home</a>
                 <a href="#" class="nav-link" onclick="showPlayersPage(); return false;">Players</a>
-                <a href="#" class="nav-link">Teams</a>
+                <a href="#" class="nav-link" onclick="showGameLogPage(); return false;">Game Log</a>
                 <a href="#" class="nav-link">Leaders</a>
             </div>
         </div>
     </nav>
 
+    <!-- Game Log Page -->
+    <div class="game-log-page" id="gameLogPage" style="display: none;">
+        <div class="game-log-header">
+            <h1 class="game-log-title">Game Log</h1>
+        </div>
+        <div class="game-log-container">
+            <div id="gameLogContent">
+                <!-- Game log will be populated here -->
+            </div>
+        </div>
+    </div>
 
     <!-- Players Page -->
     <div class="players-page" id="playersPage" style="display: none;">
@@ -222,7 +233,12 @@
         <p class="last-updated">Last updated: <span id="lastUpdate">Never</span></p>
     </div>
 
-    <script src="data-processor.js?v=2"></script>
-    <script src="script.js?v=2"></script>
+    <!-- Data Processor -->
+    <script src="src/js/data/processor.js?v=3"></script>
+    <!-- Utilities -->
+    <script src="src/js/utils/profile-pictures.js?v=3"></script>
+    <script src="src/js/utils/app-state.js?v=3"></script>
+    <!-- Main Application -->
+    <script src="src/js/main.js?v=4"></script>
 </body>
 </html>

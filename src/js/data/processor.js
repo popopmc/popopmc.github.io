@@ -11,13 +11,19 @@ class StatsProcessor {
     }
 
     // Parse CSV data
-    parseCSV(csvText) {
+    parseCSV(csvText, append = false) {
         const lines = csvText.trim().split('\n');
         const headers = lines[0].split(',');
         
-        this.games = [];
+        // Clear games array unless appending
+        if (!append) {
+            this.games = [];
+        }
         
-        for (let i = 1; i < lines.length; i++) {
+        // Start from line 1 (skip header) when appending, or line 1 for new parse
+        const startLine = append ? 1 : 1;
+        
+        for (let i = startLine; i < lines.length; i++) {
             const values = this.parseCSVLine(lines[i]);
             if (values.length < 9) continue;
             
@@ -574,5 +580,14 @@ class StatsProcessor {
             games: stats.games,
             winRate: (stats.wins / stats.games * 100).toFixed(1)
         };
+    }
+
+    // Get all games sorted by date (newest first)
+    getAllGames() {
+        return [...this.games].sort((a, b) => {
+            const dateA = new Date(a.timestamp);
+            const dateB = new Date(b.timestamp);
+            return dateB - dateA; // Newest first
+        });
     }
 }

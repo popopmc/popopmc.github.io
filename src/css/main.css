@@ -130,11 +130,22 @@ body {
     color: white;
     font-size: 0.9rem;
     position: relative;
+    overflow: hidden;
 }
 
 .player-card-image::before {
     content: "Profile Picture";
     opacity: 0.7;
+    position: absolute;
+    z-index: 1;
+}
+
+.player-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
 }
 
 .player-card-info {
@@ -336,6 +347,134 @@ body {
 
 .roster-table .negative {
     color: var(--danger);
+    font-weight: 600;
+}
+
+.player-name-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.player-name-with-icon .player-icon {
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+/* Game Log Page */
+.game-log-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.game-log-header {
+    margin-bottom: 2rem;
+}
+
+.game-log-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.game-log-container {
+    background: var(--content-bg);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.game-log-date-section {
+    margin-bottom: 3rem;
+}
+
+.game-log-date-section:last-child {
+    margin-bottom: 0;
+}
+
+.game-log-date-header {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.game-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.game-log-table thead {
+    background: var(--stat-bg);
+}
+
+.game-log-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.game-log-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.game-log-table tbody tr:hover {
+    background: var(--stat-bg);
+}
+
+.game-log-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.game-time {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.game-team {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.game-score {
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-align: center;
+    min-width: 60px;
+}
+
+.game-score.winner {
+    color: var(--success);
+}
+
+.game-result {
+    text-align: center;
+}
+
+.result-win {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.result-tie {
+    color: var(--text-secondary);
     font-weight: 600;
 }
 
@@ -628,6 +767,7 @@ body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
 }
 
 .profile-picture::before {
@@ -635,6 +775,16 @@ body {
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.9rem;
     text-align: center;
+    position: absolute;
+    z-index: 1;
+}
+
+.profile-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
 }
 
 .profile-stats-section {
@@ -1169,5 +1319,24 @@ body {
     .matchups-lists-container {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+
+    .game-log-page {
+        padding: 1rem;
+    }
+
+    .game-log-table {
+        font-size: 0.85rem;
+    }
+
+    .game-log-table th,
+    .game-log-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .game-team {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
     }
 }

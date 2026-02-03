@@ -7,15 +7,18 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Game Stats Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="src/css/main.css?v=4">
 </head>
 <body>
     <nav class="top-nav">
         <div class="nav-container">
-            <span class="nav-logo">
+            <a href="#" class="nav-logo" onclick="goBackHome(); return false;">
                 <img src="src/assets/profile-pictures/vv.png" alt="VV Logo" class="nav-logo-img">
                 PUB STATS
-            </span>
+            </a>
             <div class="nav-links">
                 <a href="#" class="nav-link" onclick="goBackHome(); return false;">Stats Home</a>
                 <a href="#" class="nav-link" onclick="showPlayersPage(); return false;">Players</a>
@@ -54,6 +57,16 @@
             <div class="roster-header">
                 <h2 class="roster-title">LEAGUE ROSTER</h2>
                 <div class="roster-controls">
+                    <div class="roster-period-tabs">
+                        <button class="period-tab active" data-section="roster" data-period="alltime">All Time</button>
+                        <button class="period-tab" data-section="roster" data-period="monthly">Monthly</button>
+                    </div>
+                    <div class="month-selector" id="rosterMonthSelector" style="display: none;">
+                        <label for="rosterMonthSelect">Select Month:</label>
+                        <select id="rosterMonthSelect" class="month-select">
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
                     <input type="text" id="playerSearch" class="player-search" placeholder="Search Players">
                 </div>
             </div>
@@ -136,11 +149,28 @@
                         <div class="profile-picture" id="profilePicture">
                             <!-- Profile picture will go here later -->
                         </div>
+                        <div class="profile-period-controls">
+                            <div class="profile-period-tabs">
+                                <button class="period-tab" data-section="profile" data-period="alltime">All Time</button>
+                                <button class="period-tab active" data-section="profile" data-period="monthly">Monthly</button>
+                            </div>
+                            <div class="month-selector" id="profileMonthSelector" style="display: none;">
+                                <label for="profileMonthSelect">Select Month:</label>
+                                <select id="profileMonthSelect" class="month-select">
+                                    <!-- Will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="profile-stats-section">
                         <h1 class="profile-name" id="profileName">Player Name</h1>
                         <div class="profile-stats-grid" id="profileStatsGrid">
                             <!-- Stats will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="profile-accolades-section" id="profileAccoladesSection" style="display: none;">
+                        <div class="accolades-badges" id="accoladesList">
+                            <!-- Accolades will be populated by JavaScript -->
                         </div>
                     </div>
                 </div>
@@ -167,17 +197,19 @@
                         <!-- Will be populated by JavaScript -->
                     </select>
                 </div>
-                <div class="synergy-lists-container">
-                    <div class="synergy-top">
-                        <h3 class="synergy-title">Top 5 Win Rates with Duos</h3>
-                        <div class="duo-list" id="topDuosList">
-                            <!-- Will be populated by JavaScript -->
+                <div class="synergy-wrapper">
+                    <div class="synergy-lists-container">
+                        <div class="synergy-top">
+                            <h3 class="synergy-title">Top 5 Win Rates with Duos</h3>
+                            <div class="duo-list" id="topDuosList">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
                         </div>
-                    </div>
-                    <div class="synergy-bottom">
-                        <h3 class="synergy-title">Bottom 5 Win Rates with Duos</h3>
-                        <div class="duo-list" id="bottomDuosList">
-                            <!-- Will be populated by JavaScript -->
+                        <div class="synergy-bottom">
+                            <h3 class="synergy-title">Bottom 5 Win Rates with Duos</h3>
+                            <div class="duo-list" id="bottomDuosList">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
                         </div>
                     </div>
                     <div class="synergy-most-teamed">

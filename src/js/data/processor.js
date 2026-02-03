@@ -120,8 +120,9 @@ class StatsProcessor {
                               gameDate.getFullYear() === currentDate.getFullYear();
             
             // Process Team 1
-            game.team1.players.forEach(player => {
-                this.updatePlayerStats(player, team1Won, team2Won, game.team1.score, game.team2.score);
+            game.team1.players.forEach((player, index) => {
+                const isKeeper = index === 0; // First player is keeper
+                this.updatePlayerStats(player, team1Won, team2Won, game.team1.score, game.team2.score, isKeeper);
                 if (isThisMonth) {
                     this.updateMonthlyStats(player, team1Won, team2Won, game.team1.score, game.team2.score);
                 }
@@ -139,8 +140,9 @@ class StatsProcessor {
             });
             
             // Process Team 2
-            game.team2.players.forEach(player => {
-                this.updatePlayerStats(player, team2Won, team1Won, game.team2.score, game.team1.score);
+            game.team2.players.forEach((player, index) => {
+                const isKeeper = index === 0; // First player is keeper
+                this.updatePlayerStats(player, team2Won, team1Won, game.team2.score, game.team1.score, isKeeper);
                 if (isThisMonth) {
                     this.updateMonthlyStats(player, team2Won, team1Won, game.team2.score, game.team1.score);
                 }
@@ -234,7 +236,7 @@ class StatsProcessor {
     }
 
     // Update individual player statistics
-    updatePlayerStats(player, won, lost, goalsFor, goalsAgainst) {
+    updatePlayerStats(player, won, lost, goalsFor, goalsAgainst, isKeeper = false) {
         if (!this.playerStats.has(player)) {
             this.playerStats.set(player, {
                 wins: 0,
@@ -242,7 +244,9 @@ class StatsProcessor {
                 ties: 0,
                 goalsFor: 0,
                 goalsAgainst: 0,
-                plusMinus: 0
+                plusMinus: 0,
+                gamesAsKeeper: 0,
+                gamesAsStriker: 0
             });
         }
         
@@ -258,6 +262,13 @@ class StatsProcessor {
         stats.goalsFor += goalsFor;
         stats.goalsAgainst += goalsAgainst;
         stats.plusMinus = stats.goalsFor - stats.goalsAgainst;
+        
+        // Track role (keeper vs striker)
+        if (isKeeper) {
+            stats.gamesAsKeeper++;
+        } else {
+            stats.gamesAsStriker++;
+        }
     }
 
     // Update teammate combination statistics
@@ -401,25 +412,94 @@ class StatsProcessor {
     }
 
     // Get player-specific stats
-    getPlayerProfile(playerName) {
+    getPlayerProfile(playerName, isMonthly = false, selectedMonth = null, selectedYear = null) {
         // Get player stats directly from the map without filtering by minimum games
         const playerNameLower = playerName.toLowerCase();
-        for (const [name, stats] of this.playerStats.entries()) {
-            if (name.toLowerCase() === playerNameLower) {
-                const totalGames = stats.wins + stats.losses + (stats.ties || 0);
-                return {
-                    name,
-                    wins: stats.wins,
-                    losses: stats.losses,
-                    ties: stats.ties || 0,
-                    games: totalGames,
-                    winRate: totalGames > 0 
-                        ? parseFloat((stats.wins / totalGames * 100).toFixed(1))
-                        : 0,
-                    goalsFor: stats.goalsFor,
-                    goalsAgainst: stats.goalsAgainst,
-                    plusMinus: stats.plusMinus
-                };
+        
+        if (isMonthly && selectedMonth !== null && selectedYear !== null) {
+            // Get monthly stats by filtering games
+            const playerGames = this.games.filter(game => {
+                const gameDate = new Date(game.timestamp);
+                const gameMonth = gameDate.getMonth();
+                const gameYear = gameDate.getFullYear();
+                
+                if (gameMonth !== selectedMonth || gameYear !== selectedYear) {
+                    return false;
+                }
+                
+                const team1HasPlayer = game.team1.players.some(p => p.toLowerCase() === playerNameLower);
+                const team2HasPlayer = game.team2.players.some(p => p.toLowerCase() === playerNameLower);
+                return team1HasPlayer || team2HasPlayer;
+            });
+            
+            // Calculate stats from filtered games
+            let wins = 0;
+            let losses = 0;
+            let goalsFor = 0;
+            let goalsAgainst = 0;
+            let gamesAsKeeper = 0;
+            let gamesAsStriker = 0;
+            
+            playerGames.forEach(game => {
+                const isTeam1 = game.team1.players.some(p => p.toLowerCase() === playerNameLower);
+                const playerTeam = isTeam1 ? game.team1 : game.team2;
+                const opponentTeam = isTeam1 ? game.team2 : game.team1;
+                
+                if (playerTeam.score > opponentTeam.score) {
+                    wins++;
+                } else if (playerTeam.score < opponentTeam.score) {
+                    losses++;
+                }
+                
+                goalsFor += playerTeam.score;
+                goalsAgainst += opponentTeam.score;
+                
+                // Determine role (first player is keeper)
+                const playerIndex = playerTeam.players.findIndex(p => p.toLowerCase() === playerNameLower);
+                if (playerIndex === 0) {
+                    gamesAsKeeper++;
+                } else {
+                    gamesAsStriker++;
+                }
+            });
+            
+            const totalGames = wins + losses;
+            return {
+                name: playerName,
+                wins,
+                losses,
+                ties: 0,
+                games: totalGames,
+                winRate: totalGames > 0 
+                    ? parseFloat((wins / totalGames * 100).toFixed(1))
+                    : 0,
+                goalsFor,
+                goalsAgainst,
+                plusMinus: goalsFor - goalsAgainst,
+                gamesAsKeeper,
+                gamesAsStriker
+            };
+        } else {
+            // Get all-time stats
+            for (const [name, stats] of this.playerStats.entries()) {
+                if (name.toLowerCase() === playerNameLower) {
+                    const totalGames = stats.wins + stats.losses + (stats.ties || 0);
+                    return {
+                        name,
+                        wins: stats.wins,
+                        losses: stats.losses,
+                        ties: stats.ties || 0,
+                        games: totalGames,
+                        winRate: totalGames > 0 
+                            ? parseFloat((stats.wins / totalGames * 100).toFixed(1))
+                            : 0,
+                        goalsFor: stats.goalsFor,
+                        goalsAgainst: stats.goalsAgainst,
+                        plusMinus: stats.plusMinus,
+                        gamesAsKeeper: stats.gamesAsKeeper || 0,
+                        gamesAsStriker: stats.gamesAsStriker || 0
+                    };
+                }
             }
         }
         return null;

@@ -2,12 +2,18 @@
 // Initialize stats processor (will be set up after DOM loads)
 let statsProcessor = null;
 let currentPeriod = 'monthly'; // 'monthly' or 'alltime'
+let profilePeriod = 'monthly'; // 'monthly' or 'alltime' for profile banner
 let synergyPeriod = 'alltime'; // 'monthly' or 'alltime' for synergy section
 let matchupsPeriod = 'alltime'; // 'monthly' or 'alltime' for matchups section
+let rosterPeriod = 'alltime'; // 'monthly' or 'alltime' for roster section
+let profileSelectedMonth = null;
+let profileSelectedYear = null;
 let synergySelectedMonth = null;
 let synergySelectedYear = null;
 let matchupsSelectedMonth = null;
 let matchupsSelectedYear = null;
+let rosterSelectedMonth = null;
+let rosterSelectedYear = null;
 
 // Roster table sorting state
 let rosterPlayers = []; // Store current player data
@@ -17,8 +23,80 @@ let rosterSortDirection = 'asc'; // 'asc' or 'desc'
 // Matchups lookup mode
 let lookupMode = 'against'; // 'with' or 'against'
 
+// Tournament accolades data
+let playerAccolades = new Map(); // Map of player name -> array of accolades
+
 // Profile picture functions are imported from profile-pictures.js
 // No need to redefine them here
+
+// Load tournament accolades
+async function loadAccolades() {
+    try {
+        const cacheBuster = '?v=' + new Date().getTime();
+        const response = await fetch('data/tourney_accolades.csv' + cacheBuster, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+        
+        if (!response.ok) {
+            console.warn('Could not load tourney_accolades.csv');
+            return;
+        }
+        
+        const csvText = await response.text();
+        if (!csvText || csvText.trim().length === 0) {
+            console.warn('tourney_accolades.csv is empty');
+            return;
+        }
+        
+        // Parse CSV
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return;
+        
+        // First line is headers (award names in first column, tournament names in other columns)
+        const headers = lines[0].split(',');
+        const tournamentNames = headers.slice(1); // Skip first empty column
+        
+        // Clear existing accolades
+        playerAccolades.clear();
+        
+        // Process each award row
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            const awardName = values[0].trim();
+            
+            if (!awardName) continue;
+            
+            // Process each tournament column
+            for (let j = 1; j < values.length && j - 1 < tournamentNames.length; j++) {
+                const playerName = values[j].trim();
+                if (playerName) {
+                    // Normalize player name (lowercase for consistency)
+                    const normalizedName = playerName.toLowerCase();
+                    
+                    if (!playerAccolades.has(normalizedName)) {
+                        playerAccolades.set(normalizedName, []);
+                    }
+                    
+                    // Add accolade with tournament info
+                    const tournamentNum = j; // Tournament number (1-indexed)
+                    playerAccolades.get(normalizedName).push({
+                        award: awardName,
+                        tournament: tournamentNum
+                    });
+                }
+            }
+        }
+        
+        console.log('Loaded tournament accolades for', playerAccolades.size, 'players');
+    } catch (error) {
+        console.error('Error loading accolades:', error);
+    }
+}
 
 // Show loading state
 function showLoading() {
@@ -78,6 +156,9 @@ async function loadData() {
         statsProcessor.parseCSV(csvTextJan, false);
         statsProcessor.parseCSV(csvTextFeb, true);
         statsProcessor.calculateStats();
+        
+        // Load tournament accolades
+        await loadAccolades();
         
         displayStats();
         updateDateDisplay();
@@ -244,6 +325,9 @@ function showPlayerProfile(playerName) {
     if (gameLogPage) gameLogPage.style.display = 'none';
     profilePage.style.display = 'block';
     
+    // Clear active nav link (profile is not in nav)
+    updateActiveNavLink(null);
+    
     // Load player data
     loadPlayerProfile(playerName);
     
@@ -253,6 +337,16 @@ function showPlayerProfile(playerName) {
 
 // Store current player name for lookup
 let currentPlayerName = '';
+
+// Update active nav link
+function updateActiveNavLink(activeLink) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
 
 // Go back to home page
 function goBackHome() {
@@ -275,6 +369,10 @@ function goBackHome() {
         lookupResult.innerHTML = '';
     }
     
+    // Update active nav link
+    const homeLink = document.querySelector('.nav-link[onclick*="goBackHome"]');
+    updateActiveNavLink(homeLink);
+    
     currentPlayerName = '';
 }
 
@@ -292,8 +390,22 @@ function showPlayersPage() {
     if (gameLogPage) gameLogPage.style.display = 'none';
     playersPage.style.display = 'block';
     
+    // Populate month dropdown if monthly is selected
+    if (rosterPeriod === 'monthly') {
+        if (rosterSelectedMonth === null || rosterSelectedYear === null) {
+            const now = new Date();
+            rosterSelectedMonth = now.getMonth();
+            rosterSelectedYear = now.getFullYear();
+        }
+        populateMonthDropdown('rosterMonthSelect', rosterSelectedMonth, rosterSelectedYear);
+    }
+    
     // Load players data
     loadPlayersPage();
+    
+    // Update active nav link
+    const playersLink = document.querySelector('.nav-link[onclick*="showPlayersPage"]');
+    updateActiveNavLink(playersLink);
     
     // Scroll to top
     window.scrollTo(0, 0);
@@ -316,6 +428,10 @@ function showGameLogPage() {
     
     // Load game log data
     loadGameLog();
+    
+    // Update active nav link
+    const gameLogLink = document.querySelector('.nav-link[onclick*="showGameLogPage"]');
+    updateActiveNavLink(gameLogLink);
     
     // Scroll to top
     window.scrollTo(0, 0);
@@ -415,10 +531,79 @@ function loadGameLog() {
 
 // Load players page data
 function loadPlayersPage() {
-    const allPlayers = statsProcessor.getPlayerStats(1).sort((a, b) => {
-        // Sort by games played (most active first)
-        return b.games - a.games;
-    });
+    let allPlayers;
+    
+    // Get players based on selected period
+    if (rosterPeriod === 'monthly' && rosterSelectedMonth !== null && rosterSelectedYear !== null) {
+        allPlayers = statsProcessor.getMonthlyPlayerStats(1).filter(player => {
+            // Filter by selected month/year
+            const playerGames = statsProcessor.games.filter(game => {
+                const gameDate = new Date(game.timestamp);
+                const gameMonth = gameDate.getMonth();
+                const gameYear = gameDate.getFullYear();
+                return gameMonth === rosterSelectedMonth && gameYear === rosterSelectedYear;
+            });
+            
+            // Check if player played in this month
+            return playerGames.some(game => 
+                game.team1.players.includes(player.name) || 
+                game.team2.players.includes(player.name)
+            );
+        });
+        
+        // Recalculate stats for the selected month
+        allPlayers = allPlayers.map(player => {
+            const playerGames = statsProcessor.games.filter(game => {
+                const gameDate = new Date(game.timestamp);
+                const gameMonth = gameDate.getMonth();
+                const gameYear = gameDate.getFullYear();
+                if (gameMonth !== rosterSelectedMonth || gameYear !== rosterSelectedYear) return false;
+                
+                return game.team1.players.includes(player.name) || game.team2.players.includes(player.name);
+            });
+            
+            let wins = 0, losses = 0, ties = 0, goalsFor = 0, goalsAgainst = 0;
+            
+            playerGames.forEach(game => {
+                const isTeam1 = game.team1.players.includes(player.name);
+                const isTeam2 = game.team2.players.includes(player.name);
+                
+                if (isTeam1) {
+                    goalsFor += game.team1.score;
+                    goalsAgainst += game.team2.score;
+                    if (game.team1.score > game.team2.score) wins++;
+                    else if (game.team1.score < game.team2.score) losses++;
+                    else ties++;
+                } else if (isTeam2) {
+                    goalsFor += game.team2.score;
+                    goalsAgainst += game.team1.score;
+                    if (game.team2.score > game.team1.score) wins++;
+                    else if (game.team2.score < game.team1.score) losses++;
+                    else ties++;
+                }
+            });
+            
+            const totalGames = wins + losses + ties;
+            const winRate = totalGames > 0 ? (wins / totalGames * 100).toFixed(1) : 0;
+            
+            return {
+                name: player.name,
+                wins,
+                losses,
+                ties,
+                games: totalGames,
+                winRate: parseFloat(winRate),
+                goalsFor,
+                goalsAgainst,
+                plusMinus: goalsFor - goalsAgainst
+            };
+        });
+    } else {
+        allPlayers = statsProcessor.getPlayerStats(1);
+    }
+    
+    // Sort by games played (most active first)
+    allPlayers.sort((a, b) => b.games - a.games);
     
     // Store players for sorting
     rosterPlayers = [...allPlayers];
@@ -430,8 +615,9 @@ function loadPlayersPage() {
     // Reset carousel
     carouselIndex = 0;
     
-    // Load carousel
-    loadPlayersCarousel(allPlayers);
+    // Load carousel (always use all-time stats for carousel)
+    const allTimePlayers = statsProcessor.getPlayerStats(1).sort((a, b) => b.games - a.games);
+    loadPlayersCarousel(allTimePlayers);
     
     // Load roster table
     loadRosterTable(rosterPlayers);
@@ -698,7 +884,12 @@ function filterRosterTable() {
 function loadPlayerProfile(playerName) {
     currentPlayerName = playerName; // Store for lookup
     
-    const player = statsProcessor.getPlayerProfile(playerName);
+    // Get profile period settings
+    const isMonthly = profilePeriod === 'monthly';
+    const selectedMonth = profileSelectedMonth;
+    const selectedYear = profileSelectedYear;
+    
+    const player = statsProcessor.getPlayerProfile(playerName, isMonthly, selectedMonth, selectedYear);
     if (!player) {
         alert('Player not found');
         goBackHome();
@@ -722,35 +913,187 @@ function loadPlayerProfile(playerName) {
         }
     }
     
-    // Set player stats
+    // Calculate win/loss bar stats
+    const totalGames = player.wins + player.losses;
+    const winPercentage = totalGames > 0 ? (player.wins / totalGames * 100) : 0;
+    const lossPercentage = totalGames > 0 ? (player.losses / totalGames * 100) : 0;
+    
+    // Calculate role bar stats
+    const gamesAsKeeper = player.gamesAsKeeper || 0;
+    const gamesAsStriker = player.gamesAsStriker || 0;
+    const totalRoleGames = gamesAsKeeper + gamesAsStriker;
+    const keeperPercentage = totalRoleGames > 0 ? (gamesAsKeeper / totalRoleGames * 100) : 0;
+    const strikerPercentage = totalRoleGames > 0 ? (gamesAsStriker / totalRoleGames * 100) : 0;
+    
+    // Calculate longest win streak and last 10 games
+    let playerGames = statsProcessor.games.filter(game => {
+        const team1HasPlayer = game.team1.players.some(p => p.toLowerCase() === playerName.toLowerCase());
+        const team2HasPlayer = game.team2.players.some(p => p.toLowerCase() === playerName.toLowerCase());
+        return team1HasPlayer || team2HasPlayer;
+    });
+    
+    // Filter by month if monthly period is selected
+    if (isMonthly && selectedMonth !== null && selectedYear !== null) {
+        playerGames = playerGames.filter(game => {
+            const gameDate = new Date(game.timestamp);
+            return gameDate.getMonth() === selectedMonth && gameDate.getFullYear() === selectedYear;
+        });
+    }
+    
+    playerGames.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    let longestWinStreak = 0;
+    let currentStreak = 0;
+    let last10Wins = 0;
+    let last10Losses = 0;
+    
+    for (let i = 0; i < playerGames.length; i++) {
+        const game = playerGames[i];
+        const isTeam1 = game.team1.players.some(p => p.toLowerCase() === playerName.toLowerCase());
+        const won = isTeam1 ? game.team1.score > game.team2.score : game.team2.score > game.team1.score;
+        
+        if (won) {
+            currentStreak++;
+            longestWinStreak = Math.max(longestWinStreak, currentStreak);
+        } else {
+            currentStreak = 0;
+        }
+        
+        // Last 10 games
+        if (i >= playerGames.length - 10) {
+            if (won) last10Wins++;
+            else last10Losses++;
+        }
+    }
+    
+    const last10Record = `${last10Wins}-${last10Losses}`;
+    const last10Games = Math.min(10, playerGames.length);
+    
+    // Set player stats grid with new layout
     const profileStatsGrid = document.getElementById('profileStatsGrid');
     if (profileStatsGrid) {
         profileStatsGrid.innerHTML = `
-            <div class="profile-stat-box">
-                <div class="profile-stat-label">Wins</div>
-                <div class="profile-stat-value">${player.wins}</div>
-            </div>
-            <div class="profile-stat-box">
-                <div class="profile-stat-label">Losses</div>
-                <div class="profile-stat-value">${player.losses}</div>
-            </div>
-            <div class="profile-stat-box">
-                <div class="profile-stat-label">Win Rate</div>
-                <div class="profile-stat-value">${typeof player.winRate === 'number' ? player.winRate.toFixed(1) : player.winRate}%</div>
-            </div>
-            <div class="profile-stat-box">
+            <div class="profile-stat-box profile-stat-games">
                 <div class="profile-stat-label">Games</div>
                 <div class="profile-stat-value">${player.games}</div>
             </div>
-            <div class="profile-stat-box">
+            <div class="profile-win-loss-bar">
+                <div class="win-loss-bar-container">
+                    <div class="win-loss-bar">
+                        ${player.wins > 0 ? `
+                            <div class="win-section" style="width: ${winPercentage}%">
+                                <div class="win-loss-label win-label">
+                                    <span class="win-loss-icon">+</span>
+                                    <span class="win-loss-percentage">${winPercentage.toFixed(0)}%</span>
+                                </div>
+                                <div class="win-loss-count win-count">${player.wins} Won</div>
+                            </div>
+                        ` : ''}
+                        ${player.losses > 0 ? `
+                            <div class="loss-section" style="width: ${lossPercentage}%">
+                                <div class="win-loss-label loss-label">
+                                    <span class="win-loss-icon">-</span>
+                                    <span class="win-loss-percentage">${lossPercentage.toFixed(0)}%</span>
+                                </div>
+                                <div class="win-loss-count loss-count">${player.losses} Lost</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="profile-stat-box profile-stat-plusminus">
                 <div class="profile-stat-label">Plus/Minus</div>
                 <div class="profile-stat-value">${player.plusMinus > 0 ? '+' : ''}${player.plusMinus}</div>
+            </div>
+            <div class="profile-role-bar">
+                <div class="role-bar-container">
+                    <div class="role-bar">
+                        ${gamesAsKeeper > 0 ? `
+                            <div class="role-section keeper-section" style="width: ${keeperPercentage}%">
+                                <div class="role-label keeper-label">
+                                    <span class="role-icon">GK</span>
+                                    <span class="role-percentage">${keeperPercentage.toFixed(0)}%</span>
+                                </div>
+                                <div class="role-count keeper-count">${gamesAsKeeper} Keeper</div>
+                            </div>
+                        ` : ''}
+                        ${gamesAsStriker > 0 ? `
+                            <div class="role-section striker-section" style="width: ${strikerPercentage}%">
+                                <div class="role-label striker-label">
+                                    <span class="role-icon">ST</span>
+                                    <span class="role-percentage">${strikerPercentage.toFixed(0)}%</span>
+                                </div>
+                                <div class="role-count striker-count">${gamesAsStriker} Striker</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="profile-stat-box profile-stat-longest-streak">
+                <div class="profile-stat-label">Longest Win Streak</div>
+                <div class="profile-stat-value">${longestWinStreak}</div>
+            </div>
+            <div class="profile-stat-box profile-stat-last10">
+                <div class="profile-stat-label">Last ${last10Games}</div>
+                <div class="profile-stat-value">${last10Record}</div>
             </div>
         `;
     }
     
+    // Load and display accolades
+    loadPlayerAccolades(playerName);
+    
     // Load synergy data
     loadSynergy(playerName);
+}
+
+// Load and display player accolades
+function loadPlayerAccolades(playerName) {
+    const accoladesSection = document.getElementById('profileAccoladesSection');
+    const accoladesList = document.getElementById('accoladesList');
+    
+    if (!accoladesSection || !accoladesList) return;
+    
+    // Normalize player name for lookup
+    const normalizedName = playerName.toLowerCase().trim();
+    const accolades = playerAccolades.get(normalizedName) || [];
+    
+    if (accolades.length === 0) {
+        accoladesSection.style.display = 'none';
+        return;
+    }
+    
+    // Show section
+    accoladesSection.style.display = 'block';
+    
+    // Group accolades by award (in case player won same award multiple times)
+    const accoladeGroups = {};
+    accolades.forEach(accolade => {
+        const key = accolade.award;
+        if (!accoladeGroups[key]) {
+            accoladeGroups[key] = [];
+        }
+        accoladeGroups[key].push(accolade.tournament);
+    });
+    
+    // Display accolades as placeholder badges with hover tooltips
+    accoladesList.innerHTML = Object.entries(accoladeGroups)
+        .map(([award, tournaments]) => {
+            const tournamentText = tournaments.length === 1 
+                ? `T${tournaments[0]}` 
+                : `T${tournaments.sort((a, b) => a - b).join(', T')}`;
+            const count = tournaments.length > 1 ? `${tournaments.length}x` : '';
+            const tooltipText = `${award} - ${tournamentText}`;
+            
+            return `
+                <div class="accolade-badge placeholder-badge" title="${tooltipText}">
+                    <div class="badge-placeholder">
+                        <span class="badge-placeholder-text">${award}${count ? ` ${count}` : ''}</span>
+                    </div>
+                </div>
+            `;
+        })
+        .join('');
     
     // Populate opponent dropdown (used for both with/against lookup)
     populateOpponentDropdown(playerName);
@@ -761,14 +1104,25 @@ function loadPlayerProfile(playerName) {
     
     // Set default month to current month
     const now = new Date();
+    if (profileSelectedMonth === null || profileSelectedYear === null) {
+        profileSelectedMonth = now.getMonth();
+        profileSelectedYear = now.getFullYear();
+    }
     synergySelectedMonth = now.getMonth();
     synergySelectedYear = now.getFullYear();
     matchupsSelectedMonth = now.getMonth();
     matchupsSelectedYear = now.getFullYear();
     
     // Populate month dropdowns
+    populateMonthDropdown('profileMonthSelect', profileSelectedMonth, profileSelectedYear);
     populateMonthDropdown('synergyMonthSelect', synergySelectedMonth, synergySelectedYear);
     populateMonthDropdown('matchupsMonthSelect', matchupsSelectedMonth, matchupsSelectedYear);
+    
+    // Show profile month selector if monthly is selected
+    const profileMonthSelector = document.getElementById('profileMonthSelector');
+    if (profileMonthSelector && profilePeriod === 'monthly') {
+        profileMonthSelector.style.display = 'block';
+    }
     
     // Load matchup data
     loadMatchups(playerName);
@@ -1197,7 +1551,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Update period and reload data
-            if (section === 'synergy') {
+            if (section === 'profile') {
+                profilePeriod = period;
+                // Populate month dropdown if switching to monthly
+                if (period === 'monthly') {
+                    // Set default to current month if not set
+                    if (profileSelectedMonth === null || profileSelectedYear === null) {
+                        const now = new Date();
+                        profileSelectedMonth = now.getMonth();
+                        profileSelectedYear = now.getFullYear();
+                    }
+                    populateMonthDropdown('profileMonthSelect', profileSelectedMonth, profileSelectedYear);
+                }
+                if (currentPlayerName) {
+                    loadPlayerProfile(currentPlayerName);
+                }
+            } else if (section === 'synergy') {
                 synergyPeriod = period;
                 if (currentPlayerName) {
                     loadSynergy(currentPlayerName);
@@ -1207,11 +1576,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentPlayerName) {
                     loadMatchups(currentPlayerName);
                 }
+            } else if (section === 'roster') {
+                rosterPeriod = period;
+                // Populate month dropdown if switching to monthly
+                if (period === 'monthly') {
+                    populateMonthDropdown('rosterMonthSelect', rosterSelectedMonth, rosterSelectedYear);
+                    // Set default to current month if not set
+                    if (rosterSelectedMonth === null || rosterSelectedYear === null) {
+                        const now = new Date();
+                        rosterSelectedMonth = now.getMonth();
+                        rosterSelectedYear = now.getFullYear();
+                        populateMonthDropdown('rosterMonthSelect', rosterSelectedMonth, rosterSelectedYear);
+                    }
+                }
+                loadPlayersPage();
             }
         });
     });
     
     // Month selector dropdowns
+    const profileMonthSelect = document.getElementById('profileMonthSelect');
+    if (profileMonthSelect) {
+        profileMonthSelect.addEventListener('change', (e) => {
+            const [year, month] = e.target.value.split('-').map(Number);
+            profileSelectedYear = year;
+            profileSelectedMonth = month;
+            if (currentPlayerName) {
+                loadPlayerProfile(currentPlayerName);
+            }
+        });
+    }
+    
     const synergyMonthSelect = document.getElementById('synergyMonthSelect');
     if (synergyMonthSelect) {
         synergyMonthSelect.addEventListener('change', (e) => {
@@ -1233,6 +1628,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentPlayerName) {
                 loadMatchups(currentPlayerName);
             }
+        });
+    }
+    
+    const rosterMonthSelect = document.getElementById('rosterMonthSelect');
+    if (rosterMonthSelect) {
+        rosterMonthSelect.addEventListener('change', (e) => {
+            const [year, month] = e.target.value.split('-').map(Number);
+            rosterSelectedYear = year;
+            rosterSelectedMonth = month;
+            loadPlayersPage();
         });
     }
     
@@ -1267,6 +1672,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.goBackHome = goBackHome;
     window.showPlayersPage = showPlayersPage;
     window.showGameLogPage = showGameLogPage;
+    
+    // Set initial active nav link (home page is default)
+    const homeLink = document.querySelector('.nav-link[onclick*="goBackHome"]');
+    if (homeLink) {
+        updateActiveNavLink(homeLink);
+    }
     
     updateLastUpdated();
 });

@@ -30,6 +30,7 @@ function getProfilePicturePath(playerName) {
         'jib': 'cropped-jib.png',
         'jinsye': 'cropped-jinsye.png',
         'kaif': 'cropped-kaif.png',
+        'katie': 'cropped-katie.png',
         'lala': 'cropped-lala.png',
         'nae': 'cropped-nae.png',
         'neptune': 'cropped-neptune.png',

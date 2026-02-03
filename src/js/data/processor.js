@@ -166,6 +166,11 @@ class StatsProcessor {
             
             const pair = [player, teammate].sort().join(' & ');
             
+            // Only count this game once per pair - use the alphabetically first player as the "owner"
+            // This prevents double-counting when both players in a pair process the same game
+            const [player1, player2] = [player, teammate].sort();
+            if (player !== player1) return; // Only process if this player is alphabetically first
+            
             if (!this.monthlyTeammateStats.has(pair)) {
                 this.monthlyTeammateStats.set(pair, {
                     wins: 0,
@@ -262,6 +267,11 @@ class StatsProcessor {
             
             // Create sorted key for consistent pairing
             const pair = [player, teammate].sort().join(' & ');
+            
+            // Only count this game once per pair - use the alphabetically first player as the "owner"
+            // This prevents double-counting when both players in a pair process the same game
+            const [player1, player2] = [player, teammate].sort();
+            if (player !== player1) return; // Only process if this player is alphabetically first
             
             if (!this.teammateStats.has(pair)) {
                 this.teammateStats.set(pair, {
@@ -434,35 +444,39 @@ class StatsProcessor {
                         const team1Won = game.team1.score > game.team2.score;
                         const team2Won = game.team2.score > game.team1.score;
                         
-                        game.team1.players.forEach(player => {
-                            game.team1.players.forEach(teammate => {
-                                if (player !== teammate) {
-                                    const pair = [player, teammate].sort().join(' & ');
-                                    if (!filteredStats.has(pair)) {
-                                        filteredStats.set(pair, { wins: 0, losses: 0, games: 0 });
-                                    }
-                                    const stats = filteredStats.get(pair);
-                                    stats.games++;
-                                    if (team1Won) stats.wins++;
-                                    if (team2Won) stats.losses++;
+                        // Process Team 1 - only count each pair once
+                        for (let i = 0; i < game.team1.players.length; i++) {
+                            for (let j = i + 1; j < game.team1.players.length; j++) {
+                                const player = game.team1.players[i];
+                                const teammate = game.team1.players[j];
+                                const pair = [player, teammate].sort().join(' & ');
+                                
+                                if (!filteredStats.has(pair)) {
+                                    filteredStats.set(pair, { wins: 0, losses: 0, games: 0 });
                                 }
-                            });
-                        });
+                                const stats = filteredStats.get(pair);
+                                stats.games++;
+                                if (team1Won) stats.wins++;
+                                if (team2Won) stats.losses++;
+                            }
+                        }
                         
-                        game.team2.players.forEach(player => {
-                            game.team2.players.forEach(teammate => {
-                                if (player !== teammate) {
-                                    const pair = [player, teammate].sort().join(' & ');
-                                    if (!filteredStats.has(pair)) {
-                                        filteredStats.set(pair, { wins: 0, losses: 0, games: 0 });
-                                    }
-                                    const stats = filteredStats.get(pair);
-                                    stats.games++;
-                                    if (team2Won) stats.wins++;
-                                    if (team1Won) stats.losses++;
+                        // Process Team 2 - only count each pair once
+                        for (let i = 0; i < game.team2.players.length; i++) {
+                            for (let j = i + 1; j < game.team2.players.length; j++) {
+                                const player = game.team2.players[i];
+                                const teammate = game.team2.players[j];
+                                const pair = [player, teammate].sort().join(' & ');
+                                
+                                if (!filteredStats.has(pair)) {
+                                    filteredStats.set(pair, { wins: 0, losses: 0, games: 0 });
                                 }
-                            });
-                        });
+                                const stats = filteredStats.get(pair);
+                                stats.games++;
+                                if (team2Won) stats.wins++;
+                                if (team1Won) stats.losses++;
+                            }
+                        }
                     }
                 }
             });

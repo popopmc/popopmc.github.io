@@ -86,7 +86,6 @@ timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,tea
 2026-01-14T02:08:33.828000+00:00,pikeman,aster,anon,5,kami,popop,stella,1
 2026-01-14T02:08:33.828000+00:00,pikeman,aster,anon,5,kami,popop,stella,2
 2026-01-14T02:08:33.828000+00:00,pikeman,aster,anon,5,kami,popop,stella,2
-2026-01-14T23:35:15.193000+00:00,akil,shan,hawk,1,pikeman,eri,,5
 2026-01-14T23:57:56.885000+00:00,shan,hawk,akil,5,pikeman,eri,saber,4
 2026-01-15T16:42:41.513000+00:00,kami,rxob,ash,3,baps,aster,nae,5
 2026-01-15T16:42:41.513000+00:00,kami,rxob,ash,2,baps,aster,nae,5
@@ -293,7 +292,6 @@ timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,tea
 2026-01-26T21:36:37.369000+00:00,shan,pikeman,stella,5,jib,wraith,ash,3
 2026-01-26T21:53:20.997000+00:00,shan,kaiferno,pikeman,4,jib,eri,wraith,5
 2026-01-26T21:53:20.997000+00:00,shan,kaiferno,pikeman,4,jib,eri,wraith,5
-2026-01-27T01:23:25.766000+00:00,shan,,,5,rxob,,,4
 2026-01-27T23:33:31.691000+00:00,jib,eri,ash,5,kami,ella,kaiferno,2
 2026-01-27T23:40:15.236000+00:00,aster,eri,ash,5,jib,ella,kaiferno,4
 2026-01-27T23:40:15.236000+00:00,aster,eri,ash,3,jib,ella,kaiferno,5
@@ -323,8 +321,6 @@ timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,tea
 2026-01-29T22:43:30.972000+00:00,kami,kaiferno,stella,3,gentle,hawk,mai,5
 2026-01-29T22:43:30.972000+00:00,kami,kaiferno,stella,0,gentle,hawk,mai,5
 2026-01-29T22:48:41.007000+00:00,kami,kaiferno,stella,1,gentle,hawk,mai,5
-2026-01-29T22:50:56.135000+00:00,kami,stella,,1,gentle,hawk,mai,5
-2026-01-29T22:50:56.135000+00:00,kami,stella,,4,gentle,hawk,mai,5
 2026-01-30T03:17:38.251000+00:00,shan,kaiferno,ash,2,pikeman,danny,jinsye,5
 2026-01-30T03:17:38.251000+00:00,shan,kaiferno,ash,5,pikeman,danny,jinsye,4
 2026-01-30T03:27:55.672000+00:00,shan,toph,hawk,5,pikeman,danny,jinsye,3
@@ -341,10 +337,7 @@ timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,tea
 2026-01-30T05:48:40.679000+00:00,jib,shan,kaiferno,4,akil,toph,danny,5
 2026-01-30T05:48:53.541000+00:00,jib,shan,kaiferno,2,akil,toph,jinsye,5
 2026-01-30T05:48:53.541000+00:00,jib,shan,kaiferno,4,akil,toph,jinsye,5
-2026-01-31T00:11:33.763000+00:00,shan,ash,,1,kami,katie,,5
-2026-01-31T00:15:08.007000+00:00,pikeman,ash,,4,kami,katie,,5
 2026-01-31T00:23:30.196000+00:00,pikeman,ash,wraith,5,kami,eri,katie,3
-2026-01-31T00:28:15.622000+00:00,toph,ash,katie,5,pikeman,,,4
 2026-01-31T02:03:39.912000+00:00,baps,wraith,ash,5,shan,jinsye,mai,2
 2026-01-31T02:03:39.912000+00:00,baps,wraith,ash,5,shan,jinsye,mai,2
 2026-01-31T02:11:23.114000+00:00,pikeman,toph,shan,5,baps,wraith,ash,3

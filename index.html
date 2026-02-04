@@ -32,6 +32,9 @@
         <div class="game-log-header">
             <h1 class="game-log-title">Game Log</h1>
         </div>
+        <div class="game-log-peek" aria-hidden="true">
+            <img src="src/assets/background/chansey.png" alt="">
+        </div>
         <div class="game-log-container">
             <div id="gameLogContent">
                 <!-- Game log will be populated here -->
@@ -262,16 +265,15 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="back-button-container">
-            <button id="backBtn" class="back-btn">← Back to Stats Home</button>
+    <footer class="site-footer">
+        <div class="footer-links">
+            <a href="https://vvbonkleague.netlify.app/" target="_blank" rel="noopener noreferrer" class="footer-link">Tournament Website</a>
+            <a href="https://www.youtube.com/playlist?list=PLfuheADgyCte7BK-6tGRScObrbOGGrwhe" target="_blank" rel="noopener noreferrer" class="footer-link">YouTube Clips</a>
+            <a href="https://youtube.com/playlist?list=PLvNfQh9iJN3AWBINmGbdK7bJNScei3RtA&si=5W2mE1uIrN6YRnBj" target="_blank" rel="noopener noreferrer" class="footer-link">Tournament VODs</a>
         </div>
-    </div>
-
-    <div class="refresh-section">
-        <button id="refreshBtn" class="refresh-btn">🔄 Refresh Stats</button>
-        <p class="last-updated">Last updated: <span id="lastUpdate">Never</span></p>
-    </div>
+    </footer>
 
     <!-- Data Processor -->
     <script src="src/js/data/processor.js?v=3"></script>

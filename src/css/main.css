@@ -6,7 +6,7 @@
 
 :root {
     /* Color Palette */
-    --color-pink: #f7cfd8;
+    --color-pink: #FFDBBB;
     --color-cream: #f4f8d3;
     --color-mint: #a6d6d6;
     --color-purple: #8e7dbe;
@@ -21,14 +21,14 @@
     
     /* Accents */
     --accent-yellow: #f4f8d3;
-    --accent-pink: #f7cfd8;
+    --accent-pink: #FFDBBB;
     --accent-mint: #a6d6d6;
     --accent-purple: #8e7dbe;
     
     /* Backgrounds */
     --content-bg: #ffffff;
     --stat-bg: #f4f8d3;
-    --hover-bg: #f7cfd8;
+    --hover-bg: #FFDBBB;
     
     /* Text */
     --text-primary: #2c2c2c;
@@ -43,7 +43,7 @@
     
     /* Status Colors */
     --success: #a6d6d6;
-    --danger: #f7cfd8;
+    --danger: #FFDBBB;
     
     /* Shadows */
     --shadow-light: 0 2px 8px rgba(142, 125, 190, 0.1);
@@ -484,10 +484,12 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
+    position: relative;
+    overflow: visible;
 }
 
 .game-log-header {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .game-log-title {
@@ -497,10 +499,32 @@ body {
     margin: 0;
 }
 
+.game-log-peek {
+    text-align: center;
+    margin-top: -200px;
+    margin-bottom: -20px;
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+    min-height: 280px;
+}
+
+.game-log-peek img {
+    max-height: 300px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+    vertical-align: bottom;
+    object-fit: contain;
+    object-position: bottom;
+}
+
 .game-log-container {
     background: var(--content-bg);
     border-radius: 8px;
     padding: 2rem;
+    position: relative;
+    z-index: 1;
 }
 
 .game-log-date-section {
@@ -1176,39 +1200,42 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Refresh Section */
-.refresh-section {
-    text-align: center;
-    padding: 2rem;
-    background: var(--stat-bg);
-    margin-top: 2rem;
+/* Site Footer */
+.site-footer {
+    margin-top: 3rem;
+    padding: 1.5rem 2rem;
+    background: #e8e4f0;
+    border-top: 1px solid rgba(142, 125, 190, 0.15);
 }
 
-.refresh-btn {
-    background: var(--tab-active);
-    color: var(--nav-text);
-    border: none;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-bottom: 0.5rem;
+.footer-links {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
 }
 
-.refresh-btn:hover {
-    background: var(--color-purple);
+.footer-link {
+    color: #5a5468;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 400;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.refresh-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.footer-link:hover {
+    color: #2c2c2c;
 }
 
-.last-updated {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+.footer-link:active {
+    color: #2c2c2c;
+    font-weight: 500;
 }
 
 #lastUpdate {
@@ -1224,7 +1251,7 @@ body {
 
 .profile-header {
     background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-mint) 100%);
-    color: white;
+    color: #FFDBBB;
     padding: 2rem 2.5rem;
     position: relative;
     border-bottom: 3px solid var(--accent-yellow);
@@ -1302,6 +1329,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     margin: 0;
+    color: #FFDBBB;
 }
 
 .profile-period-controls {
@@ -1324,7 +1352,7 @@ body {
 
 .profile-period-tabs .period-tab {
     background: transparent;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 219, 187, 0.7);
     border: none;
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
@@ -1337,13 +1365,13 @@ body {
 }
 
 .profile-period-tabs .period-tab:hover {
-    color: rgba(255, 255, 255, 0.9);
+    color: #FFDBBB;
     background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-period-tabs .period-tab.active {
     background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    color: #FFDBBB;
     font-weight: 600;
 }
 
@@ -1363,27 +1391,38 @@ body {
 }
 
 .profile-period-controls .month-selector .month-select {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    background: rgba(142, 125, 190, 0.5);
+    color: #f4f8d3;
     width: 100%;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 500;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f4f8d3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    text-align: left;
+}
+
+.profile-period-controls .month-selector .month-select option {
+    background: #6b5a9e;
+    color: #f4f8d3;
 }
 
 .profile-period-controls .month-selector .month-select:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .profile-period-controls .month-selector .month-select:focus {
     outline: none;
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 2px rgba(244, 248, 211, 0.25);
 }
 
 .profile-stats-grid {
@@ -1483,6 +1522,44 @@ body {
     max-width: 100%;
 }
 
+.accolade-badge .badge-image {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: block;
+    background: transparent;
+    mix-blend-mode: normal;
+}
+
+.accolade-badge:hover .badge-image {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.accolade-badge {
+    position: relative;
+}
+
+.accolade-badge .badge-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: rgba(255, 0, 0, 0.9);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .profile-description {
     background: rgba(0, 0, 0, 0.2);
     padding: 1rem;
@@ -1499,6 +1576,7 @@ body {
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     min-width: 100px;
+    color: #FFDBBB;
 }
 
 .profile-stat-label {
@@ -1507,11 +1585,13 @@ body {
     margin-bottom: 0.2rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: #FFDBBB;
 }
 
 .profile-stat-value {
     font-size: 1.2rem;
     font-weight: 700;
+    color: #FFDBBB;
 }
 
 .win-loss-bar-container,
@@ -1555,7 +1635,7 @@ body {
 }
 
 .loss-section {
-    background: linear-gradient(135deg, #f4f8d3 0%, #f7cfd8 100%);
+    background: linear-gradient(135deg, #f4f8d3 0%, #FFDBBB 100%);
 }
 
 .keeper-section {
@@ -1563,7 +1643,7 @@ body {
 }
 
 .striker-section {
-    background: linear-gradient(135deg, #f4f8d3 0%, #f7cfd8 100%);
+    background: linear-gradient(135deg, #f4f8d3 0%, #FFDBBB 100%);
 }
 
 .win-section .win-loss-label,
@@ -1577,10 +1657,14 @@ body {
 }
 
 .win-label,
+.keeper-label {
+    color: #FFDBBB;
+    font-size: 0.9rem;
+}
+
 .loss-label,
-.keeper-label,
 .striker-label {
-    color: white;
+    color: #8e7dbe;
     font-size: 0.9rem;
 }
 
@@ -1590,17 +1674,32 @@ body {
     font-weight: 700;
 }
 
-.win-loss-percentage,
-.role-percentage {
+.win-section .win-loss-percentage,
+.keeper-section .role-percentage {
     font-size: 0.9rem;
+    color: #FFDBBB;
 }
 
-.win-loss-count,
-.role-count {
+.loss-section .win-loss-percentage,
+.striker-section .role-percentage {
+    font-size: 0.9rem;
+    color: #8e7dbe;
+}
+
+.win-section .win-loss-count,
+.keeper-section .role-count {
     font-size: 0.75rem;
     font-weight: 600;
     opacity: 0.9;
-    color: rgba(255, 255, 255, 0.95);
+    color: #FFDBBB;
+}
+
+.loss-section .win-loss-count,
+.striker-section .role-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.9;
+    color: #8e7dbe;
 }
 
 .win-section:has(.win-loss-label),
@@ -1668,18 +1767,38 @@ body {
 }
 
 .month-select {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--content-bg);
+    padding: 0.6rem 2.25rem 0.6rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 2px solid rgba(142, 125, 190, 0.4);
+    border-radius: 8px;
+    background: #e8e4f0;
     color: var(--text-primary);
     min-width: 200px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238e7dbe' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: left;
+    box-shadow: var(--shadow-light);
+}
+
+.month-select option {
+    background: #e8e4f0;
+    color: var(--text-primary);
+    padding: 0.5rem;
+}
+
+.month-select:hover {
+    border-color: var(--color-purple);
 }
 
 .month-select:focus {
     outline: none;
     border-color: var(--tab-active);
+    box-shadow: 0 0 0 3px rgba(142, 125, 190, 0.2);
 }
 
 .profile-tab {
@@ -2062,28 +2181,6 @@ body {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
-}
-
-.back-button-container {
-    padding: 2rem;
-    text-align: center;
-    background: var(--stat-bg);
-}
-
-.back-btn {
-    background: var(--tab-active);
-    color: white;
-    border: none;
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.back-btn:hover {
-    background: var(--color-purple);
 }
 
 /* Make player names clickable */

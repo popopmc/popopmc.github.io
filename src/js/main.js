@@ -984,6 +984,23 @@ function filterRosterTable() {
 function loadPlayerProfile(playerName) {
     currentPlayerName = playerName; // Store for lookup
     
+    // Ensure monthly has valid month/year so we don't fall back to all-time stats
+    if (profilePeriod === 'monthly' && (profileSelectedMonth === null || profileSelectedYear === null)) {
+        const now = new Date();
+        profileSelectedMonth = now.getMonth();
+        profileSelectedYear = now.getFullYear();
+        populateMonthDropdown('profileMonthSelect', profileSelectedMonth, profileSelectedYear);
+        const profileMonthSelector = document.getElementById('profileMonthSelector');
+        if (profileMonthSelector) profileMonthSelector.style.display = 'block';
+    }
+    
+    // Sync profile period tabs so the active tab matches profilePeriod
+    document.querySelectorAll('.period-tab[data-section="profile"]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.period === profilePeriod);
+    });
+    const profileMonthSelectorEl = document.getElementById('profileMonthSelector');
+    if (profileMonthSelectorEl) profileMonthSelectorEl.style.display = profilePeriod === 'monthly' ? 'block' : 'none';
+    
     // Get profile period settings
     const isMonthly = profilePeriod === 'monthly';
     const selectedMonth = profileSelectedMonth;
@@ -1176,7 +1193,24 @@ function loadPlayerAccolades(playerName) {
         accoladeGroups[key].push(accolade.tournament);
     });
     
-    // Display accolades as placeholder badges with hover tooltips
+    // Map award names to badge image paths (normalized to lowercase for matching)
+    const badgeImages = {
+        'the yosh most valuable player (mvp)': 'src/assets/badges/pixel_mvp.png',
+        'the naenailwhip finals mvp (fmvp)': 'src/assets/badges/pixel_finals_mvp.png',
+        'the epic jab golden boot': 'src/assets/badges/pixel_boot.png',
+        'the tonyboring golden glove': 'src/assets/badges/pixel_glove.png',
+        'the majineri fair play award': 'src/assets/badges/israeri_fairplay.png',
+        'the popop rusty boot': 'src/assets/badges/pixel_rustyboot.png',
+        'the lebonkjames23 award': 'src/assets/badges/lebronjames.png',
+        'the puskas award': 'src/assets/badges/puskaas.png',
+        'the puskass award': 'src/assets/badges/puskaas.png',
+        'save of the tournament': 'src/assets/badges/save_of_the_tournament.png',
+        'the wraith most improved player': 'src/assets/badges/most_improved.png',
+        'the tonyboring youthful spirit award': 'src/assets/badges/youthful.jpg',
+        'the charlie kirk legacy award': 'src/assets/badges/kirk.png'
+    };
+    
+    // Display accolades as badges with hover tooltips
     accoladesList.innerHTML = Object.entries(accoladeGroups)
         .map(([award, tournaments]) => {
             const tournamentText = tournaments.length === 1 
@@ -1185,13 +1219,28 @@ function loadPlayerAccolades(playerName) {
             const count = tournaments.length > 1 ? `${tournaments.length}x` : '';
             const tooltipText = `${award} - ${tournamentText}`;
             
-            return `
-                <div class="accolade-badge placeholder-badge" title="${tooltipText}">
-                    <div class="badge-placeholder">
-                        <span class="badge-placeholder-text">${award}${count ? ` ${count}` : ''}</span>
+            // Check if we have an image for this award (normalize for matching)
+            const normalizedAward = award.toLowerCase().trim();
+            const badgeImage = badgeImages[normalizedAward];
+            
+            if (badgeImage) {
+                // Use actual badge image
+                return `
+                    <div class="accolade-badge" title="${tooltipText}">
+                        <img src="${badgeImage}" alt="${award}" class="badge-image" />
+                        ${count ? `<span class="badge-count">${count}</span>` : ''}
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // Use placeholder for awards without images
+                return `
+                    <div class="accolade-badge placeholder-badge" title="${tooltipText}">
+                        <div class="badge-placeholder">
+                            <span class="badge-placeholder-text">${award}${count ? ` ${count}` : ''}</span>
+                        </div>
+                    </div>
+                `;
+            }
         })
         .join('');
     
@@ -1601,12 +1650,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 refreshBtn.textContent = '🔄 Refresh Stats';
             });
         });
-    }
-    
-    // Back button
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', goBackHome);
     }
     
     // Toggle buttons for lookup mode

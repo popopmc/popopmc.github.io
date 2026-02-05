@@ -1950,11 +1950,11 @@ body {
 }
 
 .most-teamed-winrate.positive {
-    color: var(--color-mint);
+    color: #5a9e9e;
 }
 
 .most-teamed-winrate.negative {
-    color: var(--color-pink);
+    color: #b8865b;
 }
 
 .opponent-lookup-section {
@@ -2048,11 +2048,11 @@ body {
 }
 
 .duo-winrate.positive {
-    color: var(--color-mint);
+    color: #5a9e9e;
 }
 
 .duo-winrate.negative {
-    color: var(--color-pink);
+    color: #b8865b;
 }
 
 .duo-lookup-section {

@@ -359,7 +359,7 @@ class StatsProcessor {
             .sort((a, b) => b.plusMinus - a.plusMinus);
     }
 
-    // Get monthly player stats
+    // Get monthly player stats (current month only; from calculateStats cache)
     getMonthlyPlayerStats(minGames = 1) {
         const players = Array.from(this.monthlyStats.entries())
             .map(([name, stats]) => {
@@ -381,6 +381,58 @@ class StatsProcessor {
             .filter(p => p.games >= minGames);
         
         return players;
+    }
+
+    // Get player stats for an arbitrary month/year (computed from this.games)
+    getPlayerStatsForMonth(month, year, minGames = 1) {
+        const map = new Map();
+        const gamesInMonth = this.games.filter(game => {
+            const d = new Date(game.timestamp);
+            return d.getMonth() === month && d.getFullYear() === year;
+        });
+        gamesInMonth.forEach(game => {
+            const team1Won = game.team1.score > game.team2.score;
+            const team2Won = game.team2.score > game.team1.score;
+            const ensure = (name) => {
+                if (!map.has(name)) {
+                    map.set(name, { wins: 0, losses: 0, ties: 0, goalsFor: 0, goalsAgainst: 0, plusMinus: 0 });
+                }
+                return map.get(name);
+            };
+            game.team1.players.forEach(player => {
+                const s = ensure(player);
+                if (team1Won) s.wins++;
+                else if (team2Won) s.losses++;
+                else s.ties++;
+                s.goalsFor += game.team1.score;
+                s.goalsAgainst += game.team2.score;
+            });
+            game.team2.players.forEach(player => {
+                const s = ensure(player);
+                if (team2Won) s.wins++;
+                else if (team1Won) s.losses++;
+                else s.ties++;
+                s.goalsFor += game.team2.score;
+                s.goalsAgainst += game.team1.score;
+            });
+        });
+        return Array.from(map.entries())
+            .map(([name, stats]) => {
+                const totalGames = stats.wins + stats.losses + stats.ties;
+                return {
+                    name,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    ties: stats.ties,
+                    games: totalGames,
+                    winRate: totalGames > 0 ? (stats.wins / totalGames * 100).toFixed(1) : 0,
+                    goalsFor: stats.goalsFor,
+                    goalsAgainst: stats.goalsAgainst,
+                    plusMinus: stats.goalsFor - stats.goalsAgainst
+                };
+            })
+            .filter(p => p.games >= minGames)
+            .sort((a, b) => b.games - a.games);
     }
 
     // Get leaders by category
@@ -808,3 +860,5 @@ class StatsProcessor {
         });
     }
 }
+
+export { StatsProcessor };

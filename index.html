@@ -136,6 +136,7 @@
         <div class="sidebar">
             <div class="sidebar-section">
                 <h3 class="sidebar-title">MORE STATS</h3>
+                <p class="more-stats-category">TOTAL GAMES</p>
                 <div class="more-stats-list" id="moreStats">
                     <!-- Will be populated by JavaScript -->
                 </div>
@@ -275,12 +276,7 @@
         </div>
     </footer>
 
-    <!-- Data Processor -->
-    <script src="src/js/data/processor.js?v=3"></script>
-    <!-- Utilities -->
-    <script src="src/js/utils/profile-pictures.js?v=3"></script>
-    <script src="src/js/utils/app-state.js?v=3"></script>
-    <!-- Main Application -->
-    <script src="src/js/main.js?v=4"></script>
+    <!-- Main entry (ES module; imports state, data, utils, pages) -->
+    <script type="module" src="src/js/main.js"></script>
 </body>
 </html>

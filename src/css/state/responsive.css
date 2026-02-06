@@ -1,0 +1,191 @@
+/* State: responsive (media queries) */
+/* --- State: responsive (media query)
+   SMACSS: state change can be class, pseudo-class, or media query.
+   Optional: place each module's @media next to that module (modular media queries).
+   --- */
+@media (max-width: 1024px) {
+    .main-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    .banner-content {
+        padding: 0 1rem;
+    }
+
+    .banner-title {
+        font-size: 1.8rem;
+    }
+
+    .main-container {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tabs-container {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        width: 100%;
+        text-align: left;
+    }
+
+    .players-page {
+        padding: 1rem;
+    }
+
+    .players-carousel-container {
+        padding: 0 2.5rem;
+    }
+
+    .player-card {
+        min-width: 250px;
+    }
+
+    .carousel-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .roster-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .player-search {
+        width: 100%;
+    }
+
+    .roster-table {
+        font-size: 0.85rem;
+    }
+
+    .roster-table th,
+    .roster-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .profile-header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .profile-header {
+        padding: 1rem;
+    }
+
+    .profile-top-section {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .profile-picture {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    
+    .profile-stats-wrapper {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .profile-accolades-section {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .accolades-badges {
+        justify-content: center;
+    }
+    
+    .accolade-badge {
+        min-width: 70px;
+        max-width: 100px;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .badge-award {
+        font-size: 0.65rem;
+    }
+    
+    .badge-tournament {
+        font-size: 0.6rem;
+    }
+
+    .profile-name {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    .profile-stats-grid {
+        max-width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-stat-box {
+        width: 100%;
+    }
+
+    .lookup-controls {
+        flex-direction: column;
+    }
+
+    .teammate-select {
+        width: 100%;
+    }
+
+    .synergy-wrapper {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .synergy-lists-container,
+    .matchups-lists-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .synergy-most-teamed {
+        width: 100%;
+    }
+    
+    .most-teamed-list {
+        max-height: 400px;
+    }
+
+    .game-log-page {
+        padding: 1rem;
+    }
+
+    .game-log-table {
+        font-size: 0.85rem;
+    }
+
+    .game-log-table th,
+    .game-log-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .game-team {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}

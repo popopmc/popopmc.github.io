@@ -1,0 +1,13 @@
+/* Component: clickable player names (shared) */
+/* --- Module: clickable player names --- */
+.stat-player {
+    cursor: pointer;
+    color: var(--color-purple);
+    text-decoration: none;
+    transition: color 0.2s, text-decoration 0.2s;
+}
+
+.stat-player:hover {
+    color: var(--color-purple);
+    text-decoration: underline;
+}

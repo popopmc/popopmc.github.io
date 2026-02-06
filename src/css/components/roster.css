@@ -1,0 +1,193 @@
+/* Component: roster table, period tabs, search (Players page) */
+/* --- Module: roster table, period tabs, search --- */
+.league-roster-section {
+    margin-top: 3rem;
+}
+
+.roster-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.roster-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.roster-period-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.roster-period-tabs .period-tab {
+    background: var(--tab-inactive);
+    color: var(--text-primary);
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.roster-period-tabs .period-tab:hover {
+    background: var(--hover-bg);
+}
+
+.roster-period-tabs .period-tab.active {
+    background: var(--tab-active);
+    color: var(--nav-text);
+    border-bottom-color: var(--accent-yellow);
+}
+
+.roster-controls .month-selector {
+    margin: 0;
+    padding: 0.5rem 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.roster-controls .month-selector label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.roster-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.player-search {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    min-width: 250px;
+}
+
+.player-search:focus {
+    outline: none;
+    border-color: var(--tab-active);
+}
+
+.roster-table-container {
+    background: var(--content-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-light);
+    padding: 1rem;
+}
+
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.roster-table thead {
+    background: var(--stat-bg);
+}
+
+.roster-table th {
+    padding: 1.25rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.roster-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s, color 0.2s;
+    position: relative;
+}
+
+.roster-table th.sortable:hover {
+    background-color: rgba(142, 125, 190, 0.1);
+    color: var(--color-purple);
+}
+
+.roster-table th.sortable.sorted {
+    color: var(--color-purple);
+    background-color: rgba(142, 125, 190, 0.15);
+}
+
+.roster-table th .sort-indicator {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-weight: bold;
+    color: var(--color-purple);
+}
+
+.roster-table td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.roster-table tbody tr {
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.roster-table tbody tr:hover {
+    background: var(--stat-bg);
+}
+
+.roster-table .player-cell {
+    font-weight: 600;
+}
+
+.player-name-link {
+    color: var(--color-purple);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.player-name-link:hover {
+    text-decoration: underline;
+}
+
+.roster-table .positive {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.roster-table .negative {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.player-name-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.player-name-with-icon .player-icon {
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.player-name-with-icon.stat-player span:last-child {
+    text-decoration: none;
+}
+
+.player-name-with-icon.stat-player:hover span:last-child {
+    text-decoration: underline;
+}

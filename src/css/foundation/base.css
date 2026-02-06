@@ -1,0 +1,83 @@
+/* ==========================================================================
+   BASE (SMACSS)
+   Base rules use element selectors, descendant/child selectors, and
+   pseudo-classes only—no class or ID selectors. Default styling for
+   how that element looks in all occurrences on the page.
+   Specify body background so the design doesn't rely on default white.
+   No !important in Base.
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* Color Palette */
+    --color-pink: #FFDBBB;
+    --color-cream: #f4f8d3;
+    --color-mint: #a6d6d6;
+    --color-purple: #8e7dbe;
+
+    /* Navigation */
+    --nav-bg: #8e7dbe;
+    --nav-text: #ffffff;
+
+    /* Banner */
+    --banner-bg: #8e7dbe;
+    --banner-text: #ffffff;
+
+    /* Accents */
+    --accent-yellow: #f4f8d3;
+    --accent-pink: #FFDBBB;
+    --accent-mint: #a6d6d6;
+    --accent-purple: #8e7dbe;
+
+    /* Backgrounds */
+    --content-bg: #ffffff;
+    --stat-bg: #f4f8d3;
+    --hover-bg: #FFDBBB;
+
+    /* Text */
+    --text-primary: #2c2c2c;
+    --text-secondary: #666666;
+
+    /* Borders */
+    --border-color: #a6d6d6;
+
+    /* Tabs */
+    --tab-active: #8e7dbe;
+    --tab-inactive: #ffffff;
+
+    /* Status Colors */
+    --success: #a6d6d6;
+    --danger: #FFDBBB;
+
+    /* Shadows */
+    --shadow-light: 0 2px 8px rgba(142, 125, 190, 0.1);
+    --shadow-medium: 0 4px 12px rgba(142, 125, 190, 0.15);
+
+    /* Extended (avoid hard-coded values in layout/module) */
+    --muted-bg: #e8e4f0;
+    --negative-text: #b8865b;
+    --color-teal: #5a9e9e;
+    --color-purple-dark: #6b5a9e;
+    --text-muted: #5a5468;
+
+    /* Radius & spacing (reuse instead of magic numbers) */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+}
+
+body {
+    background: linear-gradient(180deg, var(--color-pink) 0%, var(--color-cream) 25%, var(--color-mint) 50%, var(--color-purple) 100%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+}

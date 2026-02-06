@@ -1,7 +1,8 @@
-// Profile Picture Utilities
+/**
+ * Profile picture path and player-name-with-icon HTML helpers.
+ */
 
-// Get profile picture path for a player
-function getProfilePicturePath(playerName) {
+export function getProfilePicturePath(playerName) {
     if (!playerName) return null;
     
     const name = playerName.toLowerCase().trim();
@@ -54,8 +55,8 @@ function getProfilePicturePath(playerName) {
     return basePath + `cropped-${name}.png`;
 }
 
-// Get player name with icon HTML
-function getPlayerNameWithIcon(playerName, size = 32, clickable = true) {
+/** Builds player name + icon HTML; onclick uses window.showPlayerProfile when clickable. */
+export function getPlayerNameWithIcon(playerName, size = 32, clickable = true) {
     if (!playerName) return '';
     
     const picturePath = getProfilePicturePath(playerName);

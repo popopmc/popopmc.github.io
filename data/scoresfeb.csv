@@ -242,3 +242,17 @@ timestamp,team1_name1,team1_name2,team1_name3,score1,team2_name1,team2_name2,tea
 2026-02-07T16:23:44.115000+00:00,gentle,kaiferno,ash,5,aster,wraith,nae,3
 2026-02-07T16:28:45.814000+00:00,gentle,baps,hawk,0,aster,wraith,nae,5
 2026-02-07T16:34:23.916000+00:00,baps,popop,hawk,5,aster,wraith,nae,3
+2026-02-10T00:48:27.592000+00:00,pikeman,shan,saber,2,kami,ella,hawk,5
+2026-02-10T00:48:27.968000+00:00,pikeman,shan,saber,5,kami,ella,hawk,2
+2026-02-10T01:03:26.936000+00:00,pikeman,ash,shan,5,kami,ella,hawk,4
+2026-02-10T01:03:27.865000+00:00,pikeman,ash,shan,4,kami,ella,hawk,5
+2026-02-10T01:38:29.663000+00:00,hawk,toph,shan,5,kami,ella,pikeman,1
+2026-02-10T01:38:30.071000+00:00,hawk,toph,shan,4,kami,ella,pikeman,5
+2026-02-10T01:41:57.973000+00:00,kami,toph,katie,5,ella,pikeman,ash,2
+2026-02-10T01:43:31.141000+00:00,kami,toph,katie,5,ella,pikeman,ash,0
+2026-02-10T01:55:41.588000+00:00,hawk,shan,katie,4,ash,toph,kami,5
+2026-02-10T01:55:42.258000+00:00,hawk,shan,katie,5,ash,toph,kami,3
+2026-02-10T02:00:19.718000+00:00,hawk,shan,katie,0,pikeman,ella,ash,5
+2026-02-10T02:28:48.457000+00:00,aster,ella,hawk,5,toph,anon,katie,2
+2026-02-10T02:32:38.244000+00:00,aster,ella,hawk,5,toph,anon,katie,1
+2026-02-10T02:32:48.371000+00:00,aster,hawk,katie,5,ella,anon,ash,2

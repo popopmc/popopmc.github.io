@@ -22,7 +22,14 @@ export function displayStats() {
     if (!container || !state.statsProcessor) return;
 
     const isMonthly = state.currentPeriod === 'monthly';
-    const minGames = isMonthly ? 10 : 50;
+    const totalGames = isMonthly
+        ? state.statsProcessor.games.filter(g => {
+            const d = new Date(g.timestamp);
+            const now = new Date();
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length
+        : state.statsProcessor.games.length;
+    const minGames = Math.max(1, Math.ceil(totalGames * 0.08));
 
     const winRateLeaders = state.statsProcessor.getLeadersByCategory('winrate', isMonthly, minGames);
     const winsLeaders = state.statsProcessor.getLeadersByCategory('wins', isMonthly, minGames);

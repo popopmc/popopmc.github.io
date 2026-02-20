@@ -1,0 +1,44 @@
+/* Shared player search bar (Records, Players, Profile lookup) */
+.player-search-input {
+    background: var(--content-bg, #fff);
+    border: 2px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    max-width: min(100%, 360px);
+    padding: 0.75rem 1rem;
+    width: 100%;
+}
+
+.player-search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.player-search-input:focus {
+    outline: none;
+    border-color: var(--tab-active, #8e7dbe);
+}
+
+/* Player autocomplete dropdown (used on Records + Players search bars) */
+.player-autocomplete-dropdown {
+    background: var(--content-bg, #fff);
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 240px;
+    overflow-y: auto;
+    position: fixed;
+    z-index: 1000;
+}
+
+.player-autocomplete-item {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+}
+
+.player-autocomplete-item:hover,
+.player-autocomplete-item.player-autocomplete-item--active {
+    background: var(--records-violet, #8e7dbe);
+    color: #fff;
+}

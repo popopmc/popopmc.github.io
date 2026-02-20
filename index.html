@@ -71,7 +71,7 @@
                             <!-- Will be populated by JavaScript -->
                         </select>
                     </div>
-                    <input type="text" id="playerSearch" class="player-search" placeholder="Search Players">
+                    <input type="text" id="playerSearch" class="player-search player-search-input" placeholder="Search Players" autocomplete="off">
                 </div>
             </div>
             
@@ -113,7 +113,7 @@
             <!-- Banner content populated by JavaScript -->
         </div>
         <form class="records-search-form" id="recordsSearchForm" novalidate>
-            <input type="text" id="recordsPlayerSearch" class="records-search-input" placeholder="Enter a player name to view their profile..." autocomplete="off">
+            <input type="text" id="recordsPlayerSearch" class="records-search-input player-search-input" placeholder="Enter a player name to view their profile..." autocomplete="off">
         </form>
         <div class="records-layout">
             <div class="records-container">
@@ -278,9 +278,7 @@
                         <button class="toggle-btn" id="againstToggle" data-mode="against">Against</button>
                     </div>
                     <div class="lookup-controls">
-                        <select id="opponentSelect" class="teammate-select">
-                            <option value="">Select a player...</option>
-                        </select>
+                        <input type="text" id="opponentSelect" class="player-search-input" placeholder="Select a player..." autocomplete="off">
                         <button id="opponentLookupBtn" class="lookup-btn">Lookup</button>
                     </div>
                     <div class="lookup-result" id="opponentLookupResult"></div>

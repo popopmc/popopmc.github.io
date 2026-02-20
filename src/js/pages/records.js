@@ -64,7 +64,7 @@ export function loadRecordsPage() {
         const hours = Math.floor(server.timePlayedMs / (1000 * 60 * 60));
         container.innerHTML = `
             <div class="records-hof">
-                <h2 class="records-welcome-title">Welcome to the Hall of Fame</h2>
+                <h2 class="records-welcome-title">Hall of Fame</h2>
                 <ul class="records-category-list">
                     <li><a href="#" class="record-category-link" data-category="activity">Activity records</a></li>
                     <li><a href="#" class="record-category-link" data-category="winrate">Winrate records</a></li>
@@ -104,8 +104,8 @@ export function loadRecordsPage() {
             };
             const linkLabel = state.recordsNewsExpanded ? 'Show less' : 'View all time log';
             newsEl.innerHTML = `
-                <h3 class="records-news-title">Records News</h3>
-                <p class="records-news-asof">When someone new took the lead</p>
+                <h3 class="records-news-title">Bonk News</h3>
+                <p class="records-news-asof">- new records</p>
                 <ul class="records-news-list">
                     ${events.length ? events.map(ev => `
                         <li class="records-news-item">
@@ -133,8 +133,9 @@ export function loadRecordsPage() {
     const layout = container.closest('.records-layout');
     if (layout) layout.classList.add('records-layout--category');
 
+    const rankClass = (i) => i === 0 ? 'record-card--lead record-card--1st' : i === 1 ? 'record-card--2nd' : i === 2 ? 'record-card--3rd' : 'record-card--bronze';
     const renderCard = (name, value, sub = '', index = 0) =>
-        `<div class="record-card ${index === 0 ? 'record-card--lead' : ''}" data-index="${index}">
+        `<div class="record-card ${index === 0 ? 'record-card--lead' : ''} ${rankClass(index)}" data-index="${index}">
             <div class="record-card-player">${getPlayerNameWithIcon(name, 32, true)}</div>
             <div class="record-card-value">${value}</div>
             ${sub ? `<div class="record-card-sub">${sub}</div>` : ''}
@@ -208,8 +209,8 @@ export function loadRecordsPage() {
         container.innerHTML = backLink + `
             <div class="record-category">
                 <h3 class="record-category-heading">Other records</h3>
-                ${section('Highest win streak', winStreaks, 'No streak data.', (r, i) => renderCard(r.name, `${r.streak} wins`, '', i))}
-                ${section('Highest losing streak', losingStreaks, 'No streak data.', (r, i) => renderCard(r.name, `${r.streak} losses`, '', i))}
+                ${section('Highest win streak', winStreaks, 'No streak data.', (r, i) => renderCard(r.name, `${r.streak} wins`, r.date ? r.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '', i))}
+                ${section('Highest losing streak', losingStreaks, 'No streak data.', (r, i) => renderCard(r.name, `${r.streak} losses`, r.date ? r.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '', i))}
             </div>
         `;
     }

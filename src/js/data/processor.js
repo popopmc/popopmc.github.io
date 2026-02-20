@@ -1004,10 +1004,11 @@ class StatsProcessor {
         return maxIn24h.sort((a, b) => b.games - a.games).slice(0, topN);
     }
 
-    /** Highest win streak (consecutive wins), Feb onwards. Returns [{ name, streak }, ...]. */
+    /** Highest win streak (consecutive wins), Feb onwards. Returns [{ name, streak, date }, ...]. */
     getRecordWinStreaks(topN = 10) {
         const sorted = [...this.getGamesFromFebruary()].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         const maxStreak = new Map();
+        const maxStreakDate = new Map();
         const currentStreak = new Map();
         const playerWon = (game, name) => {
             const t1 = game.team1.players.some(p => p.toLowerCase() === name.toLowerCase());
@@ -1015,14 +1016,18 @@ class StatsProcessor {
             return won;
         };
         sorted.forEach(game => {
+            const ts = game.timestamp;
             const allPlayers = [...new Set([...game.team1.players, ...game.team2.players])];
             allPlayers.forEach(name => {
                 const won = playerWon(game, name);
                 const cur = currentStreak.get(name) || 0;
                 const max = maxStreak.get(name) || 0;
                 if (won) {
-                    currentStreak.set(name, cur + 1);
-                    maxStreak.set(name, Math.max(max, cur + 1));
+                    const next = cur + 1;
+                    currentStreak.set(name, next);
+                    const newMax = Math.max(max, next);
+                    maxStreak.set(name, newMax);
+                    if (next > max) maxStreakDate.set(name, new Date(ts));
                 } else {
                     currentStreak.set(name, 0);
                     maxStreak.set(name, Math.max(max, cur));
@@ -1034,15 +1039,16 @@ class StatsProcessor {
             maxStreak.set(name, Math.max(streak, cur));
         });
         return Array.from(maxStreak.entries())
-            .map(([name, streak]) => ({ name, streak }))
+            .map(([name, streak]) => ({ name, streak, date: maxStreakDate.get(name) || null }))
             .sort((a, b) => b.streak - a.streak)
             .slice(0, topN);
     }
 
-    /** Highest losing streak (consecutive losses), Feb onwards. Returns [{ name, streak }, ...]. */
+    /** Highest losing streak (consecutive losses), Feb onwards. Returns [{ name, streak, date }, ...]. */
     getRecordLosingStreaks(topN = 10) {
         const sorted = [...this.getGamesFromFebruary()].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         const maxStreak = new Map();
+        const maxStreakDate = new Map();
         const currentStreak = new Map();
         const playerLost = (game, name) => {
             const t1 = game.team1.players.some(p => p.toLowerCase() === name.toLowerCase());
@@ -1050,14 +1056,18 @@ class StatsProcessor {
             return lost;
         };
         sorted.forEach(game => {
+            const ts = game.timestamp;
             const allPlayers = [...new Set([...game.team1.players, ...game.team2.players])];
             allPlayers.forEach(name => {
                 const lost = playerLost(game, name);
                 const cur = currentStreak.get(name) || 0;
                 const max = maxStreak.get(name) || 0;
                 if (lost) {
-                    currentStreak.set(name, cur + 1);
-                    maxStreak.set(name, Math.max(max, cur + 1));
+                    const next = cur + 1;
+                    currentStreak.set(name, next);
+                    const newMax = Math.max(max, next);
+                    maxStreak.set(name, newMax);
+                    if (next > max) maxStreakDate.set(name, new Date(ts));
                 } else {
                     currentStreak.set(name, 0);
                     maxStreak.set(name, Math.max(max, cur));
@@ -1069,7 +1079,7 @@ class StatsProcessor {
             maxStreak.set(name, Math.max(streak, cur));
         });
         return Array.from(maxStreak.entries())
-            .map(([name, streak]) => ({ name, streak }))
+            .map(([name, streak]) => ({ name, streak, date: maxStreakDate.get(name) || null }))
             .sort((a, b) => b.streak - a.streak)
             .slice(0, topN);
     }
@@ -1164,14 +1174,17 @@ class StatsProcessor {
             return best ? { name: best.name, value: best.value, label, valueFmt: fmt(best.value) } : null;
         };
         let prevStreakBest = 0;
+        let prevStreakHolder = null;
         const currentStreak = new Map();
         const maxStreak = new Map();
         let prevLosingStreakBest = 0;
+        let prevLosingStreakHolder = null;
         const currentLosingStreak = new Map();
         const maxLosingStreak = new Map();
         const MS_24H = 24 * 60 * 60 * 1000;
         const playerTimestamps = new Map();
         let prevBest24h = 0;
+        let prevBest24hHolder = null;
         const playerWon = (game, name) => {
             const t1 = game.team1.players.some(p => p.toLowerCase() === name.toLowerCase());
             return t1 ? game.team1.score > game.team2.score : game.team2.score > game.team1.score;
@@ -1243,13 +1256,16 @@ class StatsProcessor {
                     const max = maxStreak.get(name) || 0;
                     const newMax = Math.max(max, next);
                     maxStreak.set(name, newMax);
-                    if (newMax > prevStreakBest) {
+                    if (newMax > prevStreakBest && prevStreakHolder !== name) {
                         events.push({
                             playerName: name,
                             achievement: 'Highest win streak',
                             value: `${newMax} wins`,
                             timestamp: ts
                         });
+                        prevStreakBest = newMax;
+                        prevStreakHolder = name;
+                    } else if (newMax > prevStreakBest) {
                         prevStreakBest = newMax;
                     }
                     currentLosingStreak.set(name, 0);
@@ -1260,13 +1276,16 @@ class StatsProcessor {
                     const maxL = maxLosingStreak.get(name) || 0;
                     const newMaxL = Math.max(maxL, nextL);
                     maxLosingStreak.set(name, newMaxL);
-                    if (newMaxL > prevLosingStreakBest) {
+                    if (newMaxL > prevLosingStreakBest && prevLosingStreakHolder !== name) {
                         events.push({
                             playerName: name,
                             achievement: 'Highest losing streak',
                             value: `${newMaxL} losses`,
                             timestamp: ts
                         });
+                        prevLosingStreakBest = newMaxL;
+                        prevLosingStreakHolder = name;
+                    } else if (newMaxL > prevLosingStreakBest) {
                         prevLosingStreakBest = newMaxL;
                     }
                     currentStreak.set(name, 0);
@@ -1282,13 +1301,16 @@ class StatsProcessor {
                     best24hName = name;
                 }
             });
-            if (best24hName && best24h > prevBest24h) {
+            if (best24hName && best24h > prevBest24h && prevBest24hHolder !== best24hName) {
                 events.push({
                     playerName: best24hName,
                     achievement: 'Most games in 24 hours',
                     value: `${best24h} games`,
                     timestamp: ts
                 });
+                prevBest24h = best24h;
+                prevBest24hHolder = best24hName;
+            } else if (best24hName && best24h > prevBest24h) {
                 prevBest24h = best24h;
             }
         });

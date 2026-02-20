@@ -176,7 +176,7 @@ export function loadPlayerAccolades(playerName) {
         return `<div class="accolade-badge placeholder-badge" title="${tooltipText}"><div class="badge-placeholder"><span class="badge-placeholder-text">${award}${count ? ` ${count}` : ''}</span></div></div>`;
     }).join('');
 
-    populateOpponentDropdown(playerName);
+    populateOpponentDropdown();
     state.lookupMode = 'against';
     toggleLookupMode('against');
     const now = new Date();
@@ -196,14 +196,8 @@ export function loadPlayerAccolades(playerName) {
     loadMatchups(playerName);
 }
 
-export function populateOpponentDropdown(playerName) {
-    const select = document.getElementById('opponentSelect');
-    if (!select || !state.statsProcessor) return;
-    const allPlayers = state.statsProcessor.getAllPlayerNames()
-        .filter(name => name.toLowerCase() !== playerName.toLowerCase())
-        .sort();
-    select.innerHTML = '<option value="">Select a player...</option>' + allPlayers.map(name => `<option value="${name}">${name}</option>`).join('');
-}
+/** No-op: opponent lookup uses a text input with autocomplete instead of a dropdown. */
+export function populateOpponentDropdown() {}
 
 export function loadSynergy(playerName) {
     if (!state.statsProcessor) return;

@@ -1,9 +1,10 @@
-/* Page: Records – Neon Violet #9D4EDD + Electric Cyan #00F5D4 */
+/* Page: Records – Purple #8e7dbe + Mint #a6d6d6 */
 .records-page {
-    --records-violet: #9D4EDD;
-    --records-cyan: #00F5D4;
-    --records-violet-dark: #5a2d8d;
-    --records-news-bg-dark: #1e1a2e;
+    --records-violet: #8e7dbe;
+    --records-cyan: #a6d6d6;
+    --records-violet-dark: #5a4d7a;
+    --records-news-bg-dark: #2a2535;
+    --records-banner-text: var(--records-cyan);
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 2rem 2rem;
@@ -59,20 +60,6 @@
     margin-bottom: 1.5rem;
 }
 
-.records-search-input {
-    background: var(--content-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
-    width: 100%;
-}
-
-.records-search-input::placeholder {
-    color: var(--text-secondary);
-}
-
 .records-search-input:focus {
     border-color: var(--records-violet);
     outline: none;
@@ -107,9 +94,9 @@
     min-width: 0;
 }
 
-/* Hall of Fame - compact white box (Welcome + category links only) */
+/* Hall of Fame - compact grey box (title + category links only) */
 .records-hof {
-    background: var(--content-bg);
+    background: #e8e8e8;
     border-radius: 8px;
     margin-bottom: 1.75rem;
     padding: 1rem 1.25rem;
@@ -176,7 +163,7 @@
     font-weight: 700;
 }
 
-/* Records News (right panel) - compact, no extra white space */
+/* Bonk News (right panel) - compact, no extra white space */
 .records-news {
     background: var(--records-news-bg-dark);
     border-radius: 8px;
@@ -237,6 +224,10 @@
 .records-news-headline a {
     color: var(--records-news-text, #e0e0e0);
     font-weight: 600;
+}
+
+.records-news-headline .player-name-with-icon {
+    vertical-align: middle;
 }
 
 .records-news-empty {
@@ -464,21 +455,35 @@
     transform: translateY(-2px);
 }
 
+/* 1st = diamond, 2nd = gold, 3rd = silver, 4th+ = bronze */
+.record-card--lead.record-card--1st {
+    background: linear-gradient(135deg, rgba(224, 247, 255, 0.95) 0%, rgba(185, 230, 255, 0.5) 50%, rgba(230, 245, 255, 0.9) 100%);
+    border-color: rgba(100, 200, 255, 0.6);
+}
+
+.record-card--2nd {
+    background: linear-gradient(135deg, rgba(255, 248, 220, 0.9) 0%, rgba(255, 215, 0, 0.2) 100%);
+    border-color: rgba(218, 165, 32, 0.5);
+}
+
+.record-card--3rd {
+    background: linear-gradient(135deg, rgba(245, 245, 245, 0.95) 0%, rgba(192, 192, 192, 0.35) 100%);
+    border-color: rgba(169, 169, 169, 0.5);
+}
+
+.record-card--bronze {
+    background: linear-gradient(135deg, rgba(255, 248, 240, 0.9) 0%, rgba(205, 127, 50, 0.18) 100%);
+    border-color: rgba(184, 115, 51, 0.45);
+}
+
 .record-card--lead {
-    background: linear-gradient(135deg, rgba(244, 248, 211, 0.9) 0%, rgba(0, 245, 212, 0.25) 100%);
-    border-color: var(--records-cyan);
     padding: 0.95rem 1.15rem 0.55rem 1.15rem;
 }
 
-.record-grid-row .record-card:nth-child(3n + 2) {
-    background: rgba(166, 214, 214, 0.25);
-}
-
-.record-grid-row .record-card:nth-child(5n + 4) {
-    background: rgba(142, 125, 190, 0.12);
-}
 
 .record-card-player {
+    font-size: 1.05rem;
+    font-weight: 600;
     min-width: 0;
 }
 

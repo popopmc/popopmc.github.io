@@ -11,6 +11,7 @@
 /* Components: reusable UI (player card, roster, footer, links) */
 @import "components/player-card.css";
 @import "components/roster.css";
+@import "components/player-autocomplete.css";
 @import "components/footer.css";
 @import "components/stat-player.css";
 

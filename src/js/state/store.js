@@ -38,6 +38,6 @@ export const state = {
 
     /** Records sub-view: 'home' (category list) | 'activity' | 'winrate' | 'other' */
     recordsView: 'home',
-    /** When true, Records News shows full log; when false, last 5 only */
+    /** When true, Bonk News shows full log; when false, last 5 only */
     recordsNewsExpanded: false
 };

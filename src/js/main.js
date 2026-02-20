@@ -33,6 +33,7 @@ import {
     updateLastUpdated
 } from './pages/profile.js';
 import { populateMonthDropdown } from './utils/month-selector.js';
+import { createPlayerAutocomplete } from './utils/player-autocomplete.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!state.statsProcessor) {
@@ -143,13 +144,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const recordsSearchForm = document.getElementById('recordsSearchForm');
+    const recordsPlayerSearchInput = document.getElementById('recordsPlayerSearch');
     if (recordsSearchForm) {
         recordsSearchForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const input = document.getElementById('recordsPlayerSearch');
+            const input = recordsPlayerSearchInput || document.getElementById('recordsPlayerSearch');
             const name = input?.value?.trim();
             if (name && typeof window.showPlayerProfile === 'function') window.showPlayerProfile(name);
             if (input) input.value = '';
+        });
+    }
+    if (recordsPlayerSearchInput) {
+        createPlayerAutocomplete(recordsPlayerSearchInput, () => (state.statsProcessor?.getPlayerStats(1) || []).map(p => p.name), {
+            onSelect(name) {
+                if (typeof window.showPlayerProfile === 'function') window.showPlayerProfile(name);
+                recordsPlayerSearchInput.value = '';
+            }
+        });
+    }
+
+    const playerSearchInput = document.getElementById('playerSearch');
+    if (playerSearchInput) {
+        createPlayerAutocomplete(playerSearchInput, () => {
+            const roster = state.rosterPlayers || [];
+            if (roster.length) return roster.map(p => p.name);
+            return (state.statsProcessor?.getPlayerStats(1) || []).map(p => p.name);
+        }, {
+            onSelect() {
+                filterRosterTable();
+            }
+        });
+    }
+
+    const opponentSelectInput = document.getElementById('opponentSelect');
+    if (opponentSelectInput) {
+        createPlayerAutocomplete(opponentSelectInput, () => {
+            const list = (state.statsProcessor?.getPlayerStats(1) || []).map(p => p.name);
+            const cur = state.currentPlayerName;
+            if (!cur) return list;
+            return list.filter(n => n.toLowerCase() !== cur.toLowerCase());
         });
     }
 

@@ -11,9 +11,11 @@ import {
     goBackHome,
     showPlayersPage,
     showGameLogPage,
+    showRecordsPage,
     showPlayerProfile,
     updateActiveNavLink
 } from './pages/navigation.js';
+import { showRecordsCategory, toggleRecordsNewsExpanded } from './pages/records.js';
 import { loadGameLog } from './pages/game-log.js';
 import {
     loadPlayersPage,
@@ -140,10 +142,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const recordsSearchForm = document.getElementById('recordsSearchForm');
+    if (recordsSearchForm) {
+        recordsSearchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('recordsPlayerSearch');
+            const name = input?.value?.trim();
+            if (name && typeof window.showPlayerProfile === 'function') window.showPlayerProfile(name);
+            if (input) input.value = '';
+        });
+    }
+
     window.showPlayerProfile = showPlayerProfile;
     window.goBackHome = goBackHome;
     window.showPlayersPage = showPlayersPage;
     window.showGameLogPage = showGameLogPage;
+    window.showRecordsPage = showRecordsPage;
+    window.showRecordsCategory = showRecordsCategory;
+    window.toggleRecordsNewsExpanded = toggleRecordsNewsExpanded;
+
+    const recordsContainer = document.getElementById('recordsPage');
+    if (recordsContainer) {
+        recordsContainer.addEventListener('click', (e) => {
+            const categoryLink = e.target.closest('.record-category-link');
+            const backLink = e.target.closest('.records-back-link');
+            if (categoryLink) {
+                e.preventDefault();
+                showRecordsCategory(categoryLink.dataset.category);
+            } else if (backLink) {
+                e.preventDefault();
+                showRecordsCategory('home');
+            }
+        });
+    }
 
     const homeLink = document.querySelector('.nav-link[onclick*="goBackHome"]');
     if (homeLink) updateActiveNavLink(homeLink);

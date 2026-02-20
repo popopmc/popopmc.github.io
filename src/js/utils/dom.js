@@ -13,17 +13,17 @@ export function emptyStateHtml(message) {
     return `<p style="${EMPTY_STATE_STYLE}">${message}</p>`;
 }
 
-const PAGE_IDS = ['homePage', 'playersPage', 'gameLogPage', 'playerProfilePage'];
+const PAGE_IDS = ['homePage', 'playersPage', 'gameLogPage', 'recordsPage', 'playerProfilePage'];
 
 /**
- * Returns the four main page container elements (may be null).
- * @returns {{ homePage: Element|null, playersPage: Element|null, gameLogPage: Element|null, profilePage: Element|null }}
+ * Returns the main page container elements (may be null).
  */
 export function getPageElements() {
     return {
         homePage: document.getElementById('homePage'),
         playersPage: document.getElementById('playersPage'),
         gameLogPage: document.getElementById('gameLogPage'),
+        recordsPage: document.getElementById('recordsPage'),
         profilePage: document.getElementById('playerProfilePage')
     };
 }
@@ -39,6 +39,7 @@ export function showOnlyPage(visibleId, homeDisplay = 'grid') {
         [pages.homePage, visibleId === 'homePage' ? homeDisplay : 'none'],
         [pages.playersPage, visibleId === 'playersPage' ? 'block' : 'none'],
         [pages.gameLogPage, visibleId === 'gameLogPage' ? 'block' : 'none'],
+        [pages.recordsPage, visibleId === 'recordsPage' ? 'block' : 'none'],
         [pages.profilePage, visibleId === 'playerProfilePage' ? 'block' : 'none']
     ];
     entries.forEach(([el, display]) => {

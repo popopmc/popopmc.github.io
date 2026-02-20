@@ -14,10 +14,11 @@
 @import "components/footer.css";
 @import "components/stat-player.css";
 
-/* Pages: one file per screen (home, game-log, profile) */
+/* Pages: one file per screen (home, game-log, profile, records) */
 @import "pages/home.css";
 @import "pages/game-log.css";
 @import "pages/profile.css";
+@import "pages/records.css";
 
 /* State: responsive */
 @import "state/responsive.css";

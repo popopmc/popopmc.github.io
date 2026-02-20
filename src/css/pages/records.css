@@ -1,0 +1,498 @@
+/* Page: Records – Neon Violet #9D4EDD + Electric Cyan #00F5D4 */
+.records-page {
+    --records-violet: #9D4EDD;
+    --records-cyan: #00F5D4;
+    --records-violet-dark: #5a2d8d;
+    --records-news-bg-dark: #1e1a2e;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem;
+}
+
+/* Banner */
+.records-banner {
+    background: var(--records-violet);
+    border-radius: 12px;
+    margin: 0 0 1.5rem;
+    padding: 2.5rem 2rem;
+    position: relative;
+}
+
+.records-banner::before {
+    background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.04) 0%, transparent 40%);
+    border-radius: 12px;
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.records-banner-inner {
+    position: relative;
+    text-align: center;
+    z-index: 1;
+}
+
+.records-banner-number {
+    color: var(--records-banner-text, #fff);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+}
+
+.records-banner-sub {
+    color: var(--records-banner-text, #fff);
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    font-weight: 500;
+    opacity: 0.95;
+}
+
+.records-banner-sub strong {
+    font-weight: 700;
+}
+
+/* Search */
+.records-search-form {
+    margin-bottom: 1.5rem;
+}
+
+.records-search-input {
+    background: var(--content-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    width: 100%;
+}
+
+.records-search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.records-search-input:focus {
+    border-color: var(--records-violet);
+    outline: none;
+}
+
+/* Two-column layout: main content + news (50/50) */
+.records-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+    .records-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.records-layout--category {
+    grid-template-columns: 1fr;
+}
+
+.records-layout--category .records-news {
+    display: none;
+}
+
+/* Left column: stack Hall of Fame box + Server Stats box */
+.records-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    min-width: 0;
+}
+
+/* Hall of Fame - compact white box (Welcome + category links only) */
+.records-hof {
+    background: var(--content-bg);
+    border-radius: 8px;
+    margin-bottom: 1.75rem;
+    padding: 1rem 1.25rem;
+}
+
+.records-hof .records-welcome-title {
+    margin-bottom: 0.75rem;
+}
+
+.records-hof .records-category-list {
+    margin-bottom: 0;
+}
+
+.record-category-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.record-category-link::before {
+    content: "→";
+    color: var(--records-violet);
+    font-weight: 700;
+}
+
+/* Server stats - separate dark box below Hall of Fame */
+.server-stats {
+    background: var(--records-violet-dark);
+    border-radius: 8px;
+    margin-top: 0.25rem;
+    padding: 1rem 1.25rem;
+}
+
+.server-stats-title {
+    color: var(--records-cyan);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+}
+
+.server-stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dotted rgba(255, 255, 255, 0.2);
+}
+
+.server-stats-row:last-child {
+    border-bottom: none;
+}
+
+.server-stats-row.server-stats-sub {
+    padding-left: 0.5rem;
+}
+
+.server-stats-label {
+    color: var(--server-stats-text, #e0e0e0);
+    font-size: 0.9rem;
+}
+
+.server-stats-value {
+    color: var(--server-stats-text, #e0e0e0);
+    font-weight: 700;
+}
+
+/* Records News (right panel) - compact, no extra white space */
+.records-news {
+    background: var(--records-news-bg-dark);
+    border-radius: 8px;
+    color: var(--records-news-text, #e0e0e0);
+    padding: 1rem 1.25rem;
+    align-self: start;
+}
+
+.records-news-title {
+    color: var(--records-cyan);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+}
+
+.records-news-asof {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin: 0 0 0.75rem;
+}
+
+.records-news-list {
+    list-style: none;
+    margin: 0;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.records-news-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+}
+
+.records-news-item:last-child {
+    border-bottom: none;
+}
+
+.records-news-trophy {
+    flex-shrink: 0;
+    font-size: 1.25rem;
+}
+
+.records-news-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.records-news-headline {
+    font-size: 0.9rem;
+}
+
+.records-news-headline .player-name-with-icon,
+.records-news-headline a {
+    color: var(--records-news-text, #e0e0e0);
+    font-weight: 600;
+}
+
+.records-news-empty {
+    list-style: none;
+    padding: 0.5rem 0;
+}
+
+.records-news-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.records-news-when {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.records-news-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0.75rem 0 0;
+    padding-top: 0.75rem;
+}
+
+.records-news-view-all {
+    color: var(--records-cyan);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.records-news-view-all:hover {
+    text-decoration: underline;
+}
+
+.records-welcome {
+    margin-bottom: 2rem;
+}
+
+.records-welcome-title {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.records-category-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.records-category-list li {
+    margin-bottom: 0.5rem;
+}
+
+.record-category-link {
+    color: var(--records-violet);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.record-category-link:hover {
+    text-decoration: underline;
+}
+
+.records-back-wrap {
+    margin: 0 0 1.5rem;
+}
+
+.records-back-link {
+    color: var(--records-violet);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.records-back-link:hover {
+    text-decoration: underline;
+}
+
+/* Category groups */
+.record-category {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    margin-bottom: 2.5rem;
+}
+
+/* All record categories (Activity, Winrate, Other): heading full width, then 2 section wraps per row underneath */
+.record-category:has(.record-section-cell) {
+    grid-template-columns: repeat(2, 1fr);
+    align-content: start;
+    width: 100%;
+}
+
+.record-category:has(.record-section-cell) .record-category-heading {
+    grid-column: 1 / -1;
+}
+
+.record-category .records-other-placeholder {
+    grid-column: 1 / -1;
+}
+
+.record-category:last-child {
+    margin-bottom: 0;
+}
+
+.record-category-heading {
+    color: var(--records-violet);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    text-transform: lowercase;
+}
+
+.record-category-heading::first-letter {
+    text-transform: uppercase;
+}
+
+.records-other-placeholder {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Section in a cell, scaled to fit – one box per section (e.g. “Most games in a month”) */
+.record-section-cell {
+    --record-cell-scale: 0.6;
+    background: var(--content-bg);
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+    height: 460px;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 1.75rem 1.5rem 0.75rem 1.5rem;
+    position: relative;
+    width: 100%;
+}
+
+/* Section boxes same size for all categories */
+.record-category:has(.record-section-cell) .record-section-cell {
+    height: 460px;
+}
+
+.record-section-cell-inner {
+    box-sizing: border-box;
+    left: 0;
+    padding: 1.35rem 1.25rem 1.25rem 1.25rem;
+    position: absolute;
+    top: 0;
+    transform: scale(var(--record-cell-scale));
+    transform-origin: top left;
+    width: calc(100% / var(--record-cell-scale));
+}
+
+.record-section-cell .record-section {
+    margin-bottom: 0;
+}
+
+/* Section + card grid */
+.record-section {
+    margin-bottom: 2.5rem;
+}
+
+.record-section:last-child {
+    margin-bottom: 0;
+}
+
+.record-section-title {
+    color: var(--records-violet);
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    margin: 0.6rem 0 0.6rem;
+    padding-top: 0.15em;
+    text-transform: uppercase;
+}
+
+.record-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.record-grid-lead {
+    width: 100%;
+}
+
+.record-grid-row {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.record-grid-row--2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.record-grid-row--3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 600px) {
+    .record-grid-row--2,
+    .record-grid-row--3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.record-card {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.05rem 1.25rem 0.4rem 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.record-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.record-card--lead {
+    background: linear-gradient(135deg, rgba(244, 248, 211, 0.9) 0%, rgba(0, 245, 212, 0.25) 100%);
+    border-color: var(--records-cyan);
+    padding: 0.95rem 1.15rem 0.55rem 1.15rem;
+}
+
+.record-grid-row .record-card:nth-child(3n + 2) {
+    background: rgba(166, 214, 214, 0.25);
+}
+
+.record-grid-row .record-card:nth-child(5n + 4) {
+    background: rgba(142, 125, 190, 0.12);
+}
+
+.record-card-player {
+    min-width: 0;
+}
+
+.record-card-value {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.record-card--lead .record-card-value {
+    font-size: 1.35rem;
+}
+
+.record-card-sub {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}

@@ -435,6 +435,58 @@ class StatsProcessor {
             .sort((a, b) => b.games - a.games);
     }
 
+    /** Same as getPlayerStatsForMonth but from a provided games array (used for records with Feb+ filter). */
+    _getPlayerStatsForMonthFromGames(month, year, minGames = 1, gamesArray) {
+        const map = new Map();
+        const gamesInMonth = gamesArray.filter(game => {
+            const d = new Date(game.timestamp);
+            return d.getMonth() === month && d.getFullYear() === year;
+        });
+        gamesInMonth.forEach(game => {
+            const team1Won = game.team1.score > game.team2.score;
+            const team2Won = game.team2.score > game.team1.score;
+            const ensure = (name) => {
+                if (!map.has(name)) {
+                    map.set(name, { wins: 0, losses: 0, ties: 0, goalsFor: 0, goalsAgainst: 0, plusMinus: 0 });
+                }
+                return map.get(name);
+            };
+            game.team1.players.forEach(player => {
+                const s = ensure(player);
+                if (team1Won) s.wins++;
+                else if (team2Won) s.losses++;
+                else s.ties++;
+                s.goalsFor += game.team1.score;
+                s.goalsAgainst += game.team2.score;
+            });
+            game.team2.players.forEach(player => {
+                const s = ensure(player);
+                if (team2Won) s.wins++;
+                else if (team1Won) s.losses++;
+                else s.ties++;
+                s.goalsFor += game.team2.score;
+                s.goalsAgainst += game.team1.score;
+            });
+        });
+        return Array.from(map.entries())
+            .map(([name, stats]) => {
+                const totalGames = stats.wins + stats.losses + stats.ties;
+                return {
+                    name,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    ties: stats.ties,
+                    games: totalGames,
+                    winRate: totalGames > 0 ? (stats.wins / totalGames * 100).toFixed(1) : 0,
+                    goalsFor: stats.goalsFor,
+                    goalsAgainst: stats.goalsAgainst,
+                    plusMinus: stats.goalsFor - stats.goalsAgainst
+                };
+            })
+            .filter(p => p.games >= minGames)
+            .sort((a, b) => b.games - a.games);
+    }
+
     // Get leaders by category
     getLeadersByCategory(category, isMonthly = false, minGames = 1) {
         const stats = isMonthly ? this.getMonthlyPlayerStats(minGames) : this.getPlayerStats(minGames);
@@ -858,6 +910,432 @@ class StatsProcessor {
             const dateB = new Date(b.timestamp);
             return dateB - dateA; // Newest first
         });
+    }
+
+    // --- Records page helpers (count from February onwards only) ---
+
+    /** Games from February onwards (month >= 1). Records page uses this. */
+    getGamesFromFebruary() {
+        return this.games.filter(game => new Date(game.timestamp).getMonth() >= 1);
+    }
+
+    /** All (month, year) that have at least one game, February onwards only. */
+    getMonthsWithGames() {
+        const gamesFromFeb = this.getGamesFromFebruary();
+        const seen = new Set();
+        gamesFromFeb.forEach(game => {
+            const d = new Date(game.timestamp);
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            if (!seen.has(key)) seen.add(key);
+        });
+        return Array.from(seen).map(key => {
+            const [y, m] = key.split('-').map(Number);
+            return { month: m, year: y };
+        }).sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month);
+    }
+
+    /** Most games in a single month (leaderboard), Feb onwards. Returns [{ name, games, month, year }, ...] */
+    getRecordsMostGamesInMonth(topN = 10) {
+        const entries = [];
+        const gamesFromFeb = this.getGamesFromFebruary();
+        this.getMonthsWithGames().forEach(({ month, year }) => {
+            const stats = this._getPlayerStatsForMonthFromGames(month, year, 1, gamesFromFeb);
+            stats.forEach(p => entries.push({ name: p.name, games: p.games, month, year }));
+        });
+        return entries.sort((a, b) => b.games - a.games).slice(0, topN);
+    }
+
+    /** Most wins in a single month (Feb onwards). */
+    getRecordsMostWinsInMonth(topN = 10) {
+        const entries = [];
+        const gamesFromFeb = this.getGamesFromFebruary();
+        this.getMonthsWithGames().forEach(({ month, year }) => {
+            const stats = this._getPlayerStatsForMonthFromGames(month, year, 1, gamesFromFeb);
+            stats.forEach(p => entries.push({ name: p.name, wins: p.wins, month, year }));
+        });
+        return entries.sort((a, b) => b.wins - a.wins).slice(0, topN);
+    }
+
+    /** Most losses in a single month (Feb onwards). */
+    getRecordsMostLossesInMonth(topN = 10) {
+        const entries = [];
+        const gamesFromFeb = this.getGamesFromFebruary();
+        this.getMonthsWithGames().forEach(({ month, year }) => {
+            const stats = this._getPlayerStatsForMonthFromGames(month, year, 1, gamesFromFeb);
+            stats.forEach(p => entries.push({ name: p.name, losses: p.losses, month, year }));
+        });
+        return entries.sort((a, b) => b.losses - a.losses).slice(0, topN);
+    }
+
+    /** Most games played in any 24-hour window (Feb onwards). Returns [{ name, games, date }, ...] where date is the end of that window. */
+    getRecordsMostGamesIn24Hours(topN = 10) {
+        const MS_24H = 24 * 60 * 60 * 1000;
+        const gamesFromFeb = [...this.getGamesFromFebruary()].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        const playerTimestamps = new Map(); // name -> number[]
+        gamesFromFeb.forEach(game => {
+            const t = new Date(game.timestamp).getTime();
+            const players = new Set([...game.team1.players, ...game.team2.players]);
+            players.forEach(name => {
+                if (!playerTimestamps.has(name)) playerTimestamps.set(name, []);
+                playerTimestamps.get(name).push(t);
+            });
+        });
+        const maxIn24h = [];
+        playerTimestamps.forEach((times, name) => {
+            times.sort((a, b) => a - b);
+            let best = 0;
+            let bestEnd = null;
+            for (let i = 0; i < times.length; i++) {
+                const end = times[i];
+                const start = end - MS_24H;
+                let count = 0;
+                for (let j = i; j >= 0 && times[j] > start; j--) count++;
+                if (count > best) {
+                    best = count;
+                    bestEnd = end;
+                }
+            }
+            if (best > 0 && bestEnd !== null) {
+                maxIn24h.push({ name, games: best, date: new Date(bestEnd) });
+            }
+        });
+        return maxIn24h.sort((a, b) => b.games - a.games).slice(0, topN);
+    }
+
+    /** Highest win streak (consecutive wins), Feb onwards. Returns [{ name, streak }, ...]. */
+    getRecordWinStreaks(topN = 10) {
+        const sorted = [...this.getGamesFromFebruary()].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const maxStreak = new Map();
+        const currentStreak = new Map();
+        const playerWon = (game, name) => {
+            const t1 = game.team1.players.some(p => p.toLowerCase() === name.toLowerCase());
+            const won = t1 ? game.team1.score > game.team2.score : game.team2.score > game.team1.score;
+            return won;
+        };
+        sorted.forEach(game => {
+            const allPlayers = [...new Set([...game.team1.players, ...game.team2.players])];
+            allPlayers.forEach(name => {
+                const won = playerWon(game, name);
+                const cur = currentStreak.get(name) || 0;
+                const max = maxStreak.get(name) || 0;
+                if (won) {
+                    currentStreak.set(name, cur + 1);
+                    maxStreak.set(name, Math.max(max, cur + 1));
+                } else {
+                    currentStreak.set(name, 0);
+                    maxStreak.set(name, Math.max(max, cur));
+                }
+            });
+        });
+        maxStreak.forEach((streak, name) => {
+            const cur = currentStreak.get(name) || 0;
+            maxStreak.set(name, Math.max(streak, cur));
+        });
+        return Array.from(maxStreak.entries())
+            .map(([name, streak]) => ({ name, streak }))
+            .sort((a, b) => b.streak - a.streak)
+            .slice(0, topN);
+    }
+
+    /** Highest losing streak (consecutive losses), Feb onwards. Returns [{ name, streak }, ...]. */
+    getRecordLosingStreaks(topN = 10) {
+        const sorted = [...this.getGamesFromFebruary()].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const maxStreak = new Map();
+        const currentStreak = new Map();
+        const playerLost = (game, name) => {
+            const t1 = game.team1.players.some(p => p.toLowerCase() === name.toLowerCase());
+            const lost = t1 ? game.team1.score < game.team2.score : game.team2.score < game.team1.score;
+            return lost;
+        };
+        sorted.forEach(game => {
+            const allPlayers = [...new Set([...game.team1.players, ...game.team2.players])];
+            allPlayers.forEach(name => {
+                const lost = playerLost(game, name);
+                const cur = currentStreak.get(name) || 0;
+                const max = maxStreak.get(name) || 0;
+                if (lost) {
+                    currentStreak.set(name, cur + 1);
+                    maxStreak.set(name, Math.max(max, cur + 1));
+                } else {
+                    currentStreak.set(name, 0);
+                    maxStreak.set(name, Math.max(max, cur));
+                }
+            });
+        });
+        maxStreak.forEach((streak, name) => {
+            const cur = currentStreak.get(name) || 0;
+            maxStreak.set(name, Math.max(streak, cur));
+        });
+        return Array.from(maxStreak.entries())
+            .map(([name, streak]) => ({ name, streak }))
+            .sort((a, b) => b.streak - a.streak)
+            .slice(0, topN);
+    }
+
+    /** Win rate as keeper (min games as keeper), Feb onwards. Returns [{ name, games, wins, winRate }, ...]. */
+    getRecordWinRateAsKeeper(minGames = 5) {
+        const map = new Map(); // name -> { wins, losses }
+        this.getGamesFromFebruary().forEach(game => {
+            const team1Won = game.team1.score > game.team2.score;
+            const team2Won = game.team2.score > game.team1.score;
+            [game.team1.players, game.team2.players].forEach((players, teamIndex) => {
+                const won = teamIndex === 0 ? team1Won : team2Won;
+                const keeper = players[0];
+                if (!keeper) return;
+                if (!map.has(keeper)) map.set(keeper, { wins: 0, losses: 0 });
+                const s = map.get(keeper);
+                if (won) s.wins++; else s.losses++;
+            });
+        });
+        return Array.from(map.entries())
+            .map(([name, s]) => {
+                const games = s.wins + s.losses;
+                return {
+                    name,
+                    games,
+                    wins: s.wins,
+                    winRate: games >= minGames ? (s.wins / games * 100).toFixed(1) : null
+                };
+            })
+            .filter(p => p.games >= minGames && p.winRate !== null)
+            .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
+            .slice(0, 10);
+    }
+
+    /** Win rate as striker (min games as striker), Feb onwards. */
+    getRecordWinRateAsStriker(minGames = 5) {
+        const map = new Map();
+        this.getGamesFromFebruary().forEach(game => {
+            const team1Won = game.team1.score > game.team2.score;
+            const team2Won = game.team2.score > game.team1.score;
+            [game.team1.players, game.team2.players].forEach((players, teamIndex) => {
+                const won = teamIndex === 0 ? team1Won : team2Won;
+                const strikers = players.slice(1).filter(Boolean);
+                strikers.forEach(striker => {
+                    if (!map.has(striker)) map.set(striker, { wins: 0, losses: 0 });
+                    const s = map.get(striker);
+                    if (won) s.wins++; else s.losses++;
+                });
+            });
+        });
+        return Array.from(map.entries())
+            .map(([name, s]) => {
+                const games = s.wins + s.losses;
+                return {
+                    name,
+                    games,
+                    wins: s.wins,
+                    winRate: games >= minGames ? (s.wins / games * 100).toFixed(1) : null
+                };
+            })
+            .filter(p => p.games >= minGames && p.winRate !== null)
+            .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
+            .slice(0, 10);
+    }
+
+    /**
+     * Events when someone new took the lead (record broken). Process games in order and detect leader changes.
+     * Returns [{ playerName, achievement, value, timestamp }, ...] newest first.
+     */
+    getRecordBreakingEvents(limit = 25) {
+        const games = [...this.getGamesFromFebruary()].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        const events = [];
+        const monthly = new Map();
+        const prevLeader = new Map();
+        const getMonthKey = (ts) => {
+            const d = new Date(ts);
+            return `${d.getFullYear()}-${d.getMonth()}`;
+        };
+        const ensureMonth = (key) => {
+            if (!monthly.has(key)) {
+                monthly.set(key, { games: new Map(), wins: new Map(), losses: new Map() });
+            }
+            return monthly.get(key);
+        };
+        const getLeader = (map, label, fmt) => {
+            let best = null;
+            map.forEach((val, name) => {
+                if (best === null || val > best.value) best = { name, value: val };
+            });
+            return best ? { name: best.name, value: best.value, label, valueFmt: fmt(best.value) } : null;
+        };
+        let prevStreakBest = 0;
+        const currentStreak = new Map();
+        const maxStreak = new Map();
+        let prevLosingStreakBest = 0;
+        const currentLosingStreak = new Map();
+        const maxLosingStreak = new Map();
+        const MS_24H = 24 * 60 * 60 * 1000;
+        const playerTimestamps = new Map();
+        let prevBest24h = 0;
+        const playerWon = (game, name) => {
+            const t1 = game.team1.players.some(p => p.toLowerCase() === name.toLowerCase());
+            return t1 ? game.team1.score > game.team2.score : game.team2.score > game.team1.score;
+        };
+        const maxGamesIn24h = (times) => {
+            if (times.length === 0) return 0;
+            const sorted = [...times].sort((a, b) => a - b);
+            let best = 0;
+            for (let i = 0; i < sorted.length; i++) {
+                const end = sorted[i];
+                const start = end - MS_24H;
+                let count = 0;
+                for (let j = i; j >= 0 && sorted[j] > start; j--) count++;
+                best = Math.max(best, count);
+            }
+            return best;
+        };
+
+        games.forEach(game => {
+            const ts = game.timestamp;
+            const monthKey = getMonthKey(ts);
+            const d = new Date(ts);
+            const month = d.getMonth();
+            const year = d.getFullYear();
+            const team1Won = game.team1.score > game.team2.score;
+            const team2Won = game.team2.score > game.team1.score;
+            const m = ensureMonth(monthKey);
+
+            const addGame = (player, won) => {
+                if (!player) return;
+                m.games.set(player, (m.games.get(player) || 0) + 1);
+                m.wins.set(player, (m.wins.get(player) || 0) + (won ? 1 : 0));
+                m.losses.set(player, (m.losses.get(player) || 0) + (won ? 0 : 1));
+            };
+            game.team1.players.forEach(p => addGame(p, team1Won));
+            game.team2.players.forEach(p => addGame(p, team2Won));
+
+            ['games', 'wins', 'losses'].forEach((cat, i) => {
+                const labels = ['Most games played in a month', 'Most games won in a month', 'Most games lost in a month'];
+                const fmt = (v) => (cat === 'games' ? `${v} games` : cat === 'wins' ? `${v} wins` : `${v} losses`);
+                const leader = getLeader(m[cat], labels[i], fmt);
+                const key = `${monthKey}-${cat}`;
+                const prev = prevLeader.get(key);
+                if (leader && (!prev || prev.name !== leader.name)) {
+                    events.push({
+                        playerName: leader.name,
+                        achievement: leader.label,
+                        value: leader.valueFmt,
+                        timestamp: ts,
+                        month,
+                        year
+                    });
+                    prevLeader.set(key, leader);
+                }
+            });
+
+            const allPlayers = [...new Set([...game.team1.players, ...game.team2.players])];
+            const t = new Date(ts).getTime();
+            allPlayers.forEach(name => {
+                if (!playerTimestamps.has(name)) playerTimestamps.set(name, []);
+                playerTimestamps.get(name).push(t);
+            });
+            allPlayers.forEach(name => {
+                const won = playerWon(game, name);
+                const cur = currentStreak.get(name) || 0;
+                if (won) {
+                    const next = cur + 1;
+                    currentStreak.set(name, next);
+                    const max = maxStreak.get(name) || 0;
+                    const newMax = Math.max(max, next);
+                    maxStreak.set(name, newMax);
+                    if (newMax > prevStreakBest) {
+                        events.push({
+                            playerName: name,
+                            achievement: 'Highest win streak',
+                            value: `${newMax} wins`,
+                            timestamp: ts
+                        });
+                        prevStreakBest = newMax;
+                    }
+                    currentLosingStreak.set(name, 0);
+                } else {
+                    const curL = currentLosingStreak.get(name) || 0;
+                    const nextL = curL + 1;
+                    currentLosingStreak.set(name, nextL);
+                    const maxL = maxLosingStreak.get(name) || 0;
+                    const newMaxL = Math.max(maxL, nextL);
+                    maxLosingStreak.set(name, newMaxL);
+                    if (newMaxL > prevLosingStreakBest) {
+                        events.push({
+                            playerName: name,
+                            achievement: 'Highest losing streak',
+                            value: `${newMaxL} losses`,
+                            timestamp: ts
+                        });
+                        prevLosingStreakBest = newMaxL;
+                    }
+                    currentStreak.set(name, 0);
+                }
+            });
+            let best24h = 0;
+            let best24hName = null;
+            allPlayers.forEach(name => {
+                const times = playerTimestamps.get(name) || [];
+                const n = maxGamesIn24h(times);
+                if (n > best24h) {
+                    best24h = n;
+                    best24hName = name;
+                }
+            });
+            if (best24hName && best24h > prevBest24h) {
+                events.push({
+                    playerName: best24hName,
+                    achievement: 'Most games in 24 hours',
+                    value: `${best24h} games`,
+                    timestamp: ts
+                });
+                prevBest24h = best24h;
+            }
+        });
+
+        return events
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, limit);
+    }
+
+    /**
+     * Server stats since February: total players, games played, time played (from lobby first-to-last), goals scored, lobbies hosted.
+     * Lobby = games where gap between consecutive games is ≤ 1 hour; > 1 hour starts a new lobby.
+     * Time played = sum per lobby of (last game timestamp - first game timestamp).
+     */
+    getServerStats() {
+        const games = [...this.getGamesFromFebruary()].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const ONE_HOUR_MS = 60 * 60 * 1000;
+        let lobbiesHosted = 1;
+        let timePlayedMs = 0;
+        let lobbyFirstTs = games.length ? new Date(games[0].timestamp).getTime() : 0;
+        for (let i = 1; i < games.length; i++) {
+            const prevTs = new Date(games[i - 1].timestamp).getTime();
+            const currTs = new Date(games[i].timestamp).getTime();
+            if (currTs - prevTs > ONE_HOUR_MS) {
+                timePlayedMs += prevTs - lobbyFirstTs;
+                lobbyFirstTs = currTs;
+                lobbiesHosted++;
+            }
+        }
+        if (games.length > 0) {
+            const lastTs = new Date(games[games.length - 1].timestamp).getTime();
+            timePlayedMs += lastTs - lobbyFirstTs;
+        }
+        const playerSet = new Set();
+        let goalsScored = 0;
+        games.forEach(g => {
+            g.team1.players.forEach(p => playerSet.add(p));
+            g.team2.players.forEach(p => playerSet.add(p));
+            goalsScored += (g.team1.score || 0) + (g.team2.score || 0);
+        });
+        return {
+            totalPlayers: playerSet.size,
+            gamesPlayed: games.length,
+            timePlayedMs,
+            goalsScored,
+            lobbiesHosted
+        };
     }
 }
 

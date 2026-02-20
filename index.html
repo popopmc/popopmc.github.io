@@ -23,6 +23,7 @@
                 <a href="#" class="nav-link" onclick="goBackHome(); return false;">Stats Home</a>
                 <a href="#" class="nav-link" onclick="showPlayersPage(); return false;">Players</a>
                 <a href="#" class="nav-link" onclick="showGameLogPage(); return false;">Game Log</a>
+                <a href="#" class="nav-link" onclick="showRecordsPage(); return false;">Records</a>
             </div>
         </div>
     </nav>
@@ -103,6 +104,26 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Records Page -->
+    <div class="records-page" id="recordsPage" style="display: none;">
+        <div class="records-banner" id="recordsBanner">
+            <!-- Banner content populated by JavaScript -->
+        </div>
+        <form class="records-search-form" id="recordsSearchForm" novalidate>
+            <input type="text" id="recordsPlayerSearch" class="records-search-input" placeholder="Enter a player name to view their profile..." autocomplete="off">
+        </form>
+        <div class="records-layout">
+            <div class="records-container">
+                <div id="recordsContent">
+                    <!-- Welcome + record categories populated by JavaScript -->
+                </div>
+            </div>
+            <aside class="records-news" id="recordsNews">
+                <!-- Records news populated by JavaScript -->
+            </aside>
         </div>
     </div>
 

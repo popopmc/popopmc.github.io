@@ -34,5 +34,10 @@ export const state = {
 
     currentPlayerName: '',
 
-    carouselIndex: 0
+    carouselIndex: 0,
+
+    /** Records sub-view: 'home' (category list) | 'activity' | 'winrate' | 'other' */
+    recordsView: 'home',
+    /** When true, Records News shows full log; when false, last 5 only */
+    recordsNewsExpanded: false
 };

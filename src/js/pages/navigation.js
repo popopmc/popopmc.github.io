@@ -5,6 +5,7 @@
 import { state } from '../state/store.js';
 import { loadGameLog } from './game-log.js';
 import { loadPlayersPage } from './players.js';
+import { loadRecordsPage } from './records.js';
 import { loadPlayerProfile } from './profile.js';
 import { populateMonthDropdown } from '../utils/month-selector.js';
 import { showOnlyPage } from '../utils/dom.js';
@@ -53,6 +54,16 @@ export function showGameLogPage() {
     state.gameLogCurrentPage = 1;
     loadGameLog();
     updateActiveNavLink(document.querySelector('.nav-link[onclick*="showGameLogPage"]'));
+    window.scrollTo(0, 0);
+}
+
+export function showRecordsPage() {
+    if (!document.getElementById('recordsPage')) return;
+    state.recordsView = 'home';
+    state.recordsNewsExpanded = false;
+    showOnlyPage('recordsPage');
+    loadRecordsPage();
+    updateActiveNavLink(document.querySelector('.nav-link[onclick*="showRecordsPage"]'));
     window.scrollTo(0, 0);
 }
 

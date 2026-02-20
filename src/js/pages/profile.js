@@ -25,6 +25,10 @@ const BADGE_IMAGES = {
 };
 
 export function loadPlayerProfile(playerName) {
+    if (state.statsProcessor?.isHiddenPlayer(playerName)) {
+        if (typeof window.goBackHome === 'function') window.goBackHome();
+        return;
+    }
     state.currentPlayerName = playerName;
 
     if (state.profilePeriod === 'monthly' && (state.profileSelectedMonth === null || state.profileSelectedYear === null)) {

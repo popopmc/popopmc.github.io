@@ -40,8 +40,8 @@ export function loadRecordsPage() {
     const totalGames = gamesFromFeb.length;
     const playerSet = new Set();
     gamesFromFeb.forEach(game => {
-        game.team1.players.forEach(pl => playerSet.add(pl));
-        game.team2.players.forEach(pl => playerSet.add(pl));
+        game.team1.players.forEach(pl => { if (!p.isHiddenPlayer(pl)) playerSet.add(pl); });
+        game.team2.players.forEach(pl => { if (!p.isHiddenPlayer(pl)) playerSet.add(pl); });
     });
     const totalPlayers = playerSet.size;
 

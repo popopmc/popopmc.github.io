@@ -10,7 +10,7 @@ export function loadGameLog() {
     const gameLogContent = document.getElementById('gameLogContent');
     if (!gameLogContent || !state.statsProcessor) return;
 
-    const allGames = state.statsProcessor.getAllGames();
+    const allGames = state.statsProcessor.getAllGamesForDisplay();
 
     if (allGames.length === 0) {
         gameLogContent.innerHTML = emptyStateHtml('No games found');

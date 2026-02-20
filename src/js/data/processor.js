@@ -1,4 +1,17 @@
 // CSV Parser and Stats Calculator
+
+/** Players hidden from UI: no profile, no game log rows, excluded from player lists. Their games still count for other players' stats. */
+const HIDDEN_PLAYERS = ['wraith'];
+
+function isHiddenPlayer(name) {
+    return name && HIDDEN_PLAYERS.some(h => h.toLowerCase() === name.toLowerCase());
+}
+
+function gameHasHiddenPlayer(game) {
+    const all = [...(game.team1?.players || []), ...(game.team2?.players || [])];
+    return all.some(p => isHiddenPlayer(p));
+}
+
 class StatsProcessor {
     constructor() {
         this.games = [];
@@ -9,6 +22,11 @@ class StatsProcessor {
         this.opponentStats = new Map(); // For tracking win rates against opponents
         this.monthlyOpponentStats = new Map(); // For monthly opponent stats
         this.seenGames = new Set(); // Track seen games across all CSV files to prevent duplicates
+    }
+
+    /** Whether this player is hidden from UI (no profile, no game log, excluded from lists). */
+    isHiddenPlayer(name) {
+        return name && HIDDEN_PLAYERS.some(h => h.toLowerCase() === name.toLowerCase());
     }
 
     // Parse CSV data
@@ -319,6 +337,7 @@ class StatsProcessor {
                 };
             })
             .filter(p => p.games >= minGames)
+            .filter(p => !this.isHiddenPlayer(p.name))
             .sort((a, b) => {
                 // Sort by win rate, then by games played
                 if (parseFloat(b.winRate) !== parseFloat(a.winRate)) {
@@ -378,7 +397,8 @@ class StatsProcessor {
                     plusMinus: stats.plusMinus
                 };
             })
-            .filter(p => p.games >= minGames);
+            .filter(p => p.games >= minGames)
+            .filter(p => !this.isHiddenPlayer(p.name));
         
         return players;
     }
@@ -432,6 +452,7 @@ class StatsProcessor {
                 };
             })
             .filter(p => p.games >= minGames)
+            .filter(p => !this.isHiddenPlayer(p.name))
             .sort((a, b) => b.games - a.games);
     }
 
@@ -517,6 +538,7 @@ class StatsProcessor {
 
     // Get player-specific stats
     getPlayerProfile(playerName, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        if (this.isHiddenPlayer(playerName)) return null;
         // Get player stats directly from the map without filtering by minimum games
         const playerNameLower = playerName.toLowerCase();
         
@@ -692,7 +714,7 @@ class StatsProcessor {
             }
         });
         
-        return duos;
+        return duos.filter(d => !this.isHiddenPlayer(d.teammate));
     }
 
     // Get top 5 duos for a player
@@ -723,6 +745,7 @@ class StatsProcessor {
 
     // Get winrate with specific teammate
     getDuoWinRate(player1, player2, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        if (this.isHiddenPlayer(player2)) return null;
         if (isMonthly && selectedMonth !== null && selectedYear !== null) {
             // Calculate on the fly for selected month
             const duos = this.getPlayerDuoStats(player1, minGames, isMonthly, selectedMonth, selectedYear);
@@ -760,7 +783,9 @@ class StatsProcessor {
 
     // Get all player names
     getAllPlayerNames() {
-        return Array.from(this.playerStats.keys()).sort();
+        return Array.from(this.playerStats.keys())
+            .filter(name => !this.isHiddenPlayer(name))
+            .sort();
     }
 
     // Get opponent stats for a specific player
@@ -831,13 +856,15 @@ class StatsProcessor {
                     ? (stats.wins / stats.games * 100).toFixed(1) 
                     : 0;
                 
-                opponents.push({
-                    opponent: stats.opponent,
-                    wins: stats.wins,
-                    losses: stats.losses,
-                    games: stats.games,
-                    winRate: parseFloat(winRate)
-                });
+                if (!this.isHiddenPlayer(stats.opponent)) {
+                    opponents.push({
+                        opponent: stats.opponent,
+                        wins: stats.wins,
+                        losses: stats.losses,
+                        games: stats.games,
+                        winRate: parseFloat(winRate)
+                    });
+                }
             }
         });
         
@@ -872,6 +899,7 @@ class StatsProcessor {
 
     // Get win rate against specific opponent
     getOpponentWinRate(playerName, opponentName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        if (this.isHiddenPlayer(opponentName)) return null;
         if (isMonthly && selectedMonth !== null && selectedYear !== null) {
             // Calculate on the fly for selected month
             const opponents = this.getOpponentStats(playerName, minGames, isMonthly, selectedMonth, selectedYear);
@@ -912,6 +940,11 @@ class StatsProcessor {
         });
     }
 
+    /** Games for display (e.g. game log): excludes games where a hidden player participated. Stats still use getAllGames(). */
+    getAllGamesForDisplay() {
+        return this.getAllGames().filter(game => !gameHasHiddenPlayer(game));
+    }
+
     // --- Records page helpers (count from February onwards only) ---
 
     /** Games from February onwards (month >= 1). Records page uses this. */
@@ -942,7 +975,7 @@ class StatsProcessor {
             const stats = this._getPlayerStatsForMonthFromGames(month, year, 1, gamesFromFeb);
             stats.forEach(p => entries.push({ name: p.name, games: p.games, month, year }));
         });
-        return entries.sort((a, b) => b.games - a.games).slice(0, topN);
+        return entries.filter(e => !this.isHiddenPlayer(e.name)).sort((a, b) => b.games - a.games).slice(0, topN);
     }
 
     /** Most wins in a single month (Feb onwards). */
@@ -953,7 +986,7 @@ class StatsProcessor {
             const stats = this._getPlayerStatsForMonthFromGames(month, year, 1, gamesFromFeb);
             stats.forEach(p => entries.push({ name: p.name, wins: p.wins, month, year }));
         });
-        return entries.sort((a, b) => b.wins - a.wins).slice(0, topN);
+        return entries.filter(e => !this.isHiddenPlayer(e.name)).sort((a, b) => b.wins - a.wins).slice(0, topN);
     }
 
     /** Most losses in a single month (Feb onwards). */
@@ -964,7 +997,7 @@ class StatsProcessor {
             const stats = this._getPlayerStatsForMonthFromGames(month, year, 1, gamesFromFeb);
             stats.forEach(p => entries.push({ name: p.name, losses: p.losses, month, year }));
         });
-        return entries.sort((a, b) => b.losses - a.losses).slice(0, topN);
+        return entries.filter(e => !this.isHiddenPlayer(e.name)).sort((a, b) => b.losses - a.losses).slice(0, topN);
     }
 
     /** Most games played in any 24-hour window (Feb onwards). Returns [{ name, games, date }, ...] where date is the end of that window. */
@@ -1001,7 +1034,7 @@ class StatsProcessor {
                 maxIn24h.push({ name, games: best, date: new Date(bestEnd) });
             }
         });
-        return maxIn24h.sort((a, b) => b.games - a.games).slice(0, topN);
+        return maxIn24h.filter(e => !this.isHiddenPlayer(e.name)).sort((a, b) => b.games - a.games).slice(0, topN);
     }
 
     /** Highest win streak (consecutive wins), Feb onwards. Returns [{ name, streak, date }, ...]. */
@@ -1040,6 +1073,7 @@ class StatsProcessor {
         });
         return Array.from(maxStreak.entries())
             .map(([name, streak]) => ({ name, streak, date: maxStreakDate.get(name) || null }))
+            .filter(e => !this.isHiddenPlayer(e.name))
             .sort((a, b) => b.streak - a.streak)
             .slice(0, topN);
     }
@@ -1080,6 +1114,7 @@ class StatsProcessor {
         });
         return Array.from(maxStreak.entries())
             .map(([name, streak]) => ({ name, streak, date: maxStreakDate.get(name) || null }))
+            .filter(e => !this.isHiddenPlayer(e.name))
             .sort((a, b) => b.streak - a.streak)
             .slice(0, topN);
     }
@@ -1110,6 +1145,7 @@ class StatsProcessor {
                 };
             })
             .filter(p => p.games >= minGames && p.winRate !== null)
+            .filter(p => !this.isHiddenPlayer(p.name))
             .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
             .slice(0, 10);
     }
@@ -1141,6 +1177,7 @@ class StatsProcessor {
                 };
             })
             .filter(p => p.games >= minGames && p.winRate !== null)
+            .filter(p => !this.isHiddenPlayer(p.name))
             .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
             .slice(0, 10);
     }
@@ -1316,6 +1353,7 @@ class StatsProcessor {
         });
 
         return events
+            .filter(e => !this.isHiddenPlayer(e.playerName))
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
             .slice(0, limit);
     }
@@ -1347,8 +1385,8 @@ class StatsProcessor {
         const playerSet = new Set();
         let goalsScored = 0;
         games.forEach(g => {
-            g.team1.players.forEach(p => playerSet.add(p));
-            g.team2.players.forEach(p => playerSet.add(p));
+            g.team1.players.forEach(p => { if (!this.isHiddenPlayer(p)) playerSet.add(p); });
+            g.team2.players.forEach(p => { if (!this.isHiddenPlayer(p)) playerSet.add(p); });
             goalsScored += (g.team1.score || 0) + (g.team2.score || 0);
         });
         return {

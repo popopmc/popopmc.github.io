@@ -1,7 +1,7 @@
 // CSV Parser and Stats Calculator
 
-/** Players hidden from UI: no profile, no game log rows, excluded from player lists. Their games still count for other players' stats. */
-const HIDDEN_PLAYERS = ['wraith'];
+/** Players hidden from UI: no profile, no game log rows, excluded from player lists. Their games still count for other players' stats. Add names here to hide them. */
+const HIDDEN_PLAYERS = [];
 
 function isHiddenPlayer(name) {
     return name && HIDDEN_PLAYERS.some(h => h.toLowerCase() === name.toLowerCase());

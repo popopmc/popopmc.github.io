@@ -252,11 +252,14 @@ export function handleOpponentLookup() {
         title = `${getPlayerNameWithIcon(state.currentPlayerName.toUpperCase(), 28, false)} & ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}`;
         noGamesMsg = 'No games played together (minimum 1 game required)';
     } else {
-        const role = state.lookupAgainstRole || 'any';
-        stats = state.statsProcessor.getOpponentWinRateWithRole(state.currentPlayerName, selectedPlayer, role, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
-        const roleLabel = role === 'any' ? '' : ` (as ${role === 'gk' ? 'Goalkeeper' : 'Striker'})`;
-        title = `${getPlayerNameWithIcon(state.currentPlayerName.toUpperCase(), 28, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}${roleLabel}`;
-        noGamesMsg = `No games played against this player${role === 'any' ? '' : ` when they played as ${role === 'gk' ? 'goalkeeper' : 'striker'}`} (minimum 1 game required)`;
+        const theirRole = state.lookupAgainstRole || 'any';
+        const myRole = state.lookupPlayerRole || 'any';
+        stats = state.statsProcessor.getOpponentWinRateWithRole(state.currentPlayerName, selectedPlayer, theirRole, myRole, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
+        const theirLabel = theirRole === 'any' ? '' : ` (they as ${theirRole === 'gk' ? 'GK' : 'Striker'})`;
+        const myLabel = myRole === 'any' ? '' : ` (me as ${myRole === 'gk' ? 'GK' : 'Striker'})`;
+        title = `${getPlayerNameWithIcon(state.currentPlayerName.toUpperCase(), 28, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}${myLabel}${theirLabel}`;
+        const roleDesc = [myRole !== 'any' && `I was ${myRole === 'gk' ? 'goalkeeper' : 'striker'}`, theirRole !== 'any' && `they were ${theirRole === 'gk' ? 'goalkeeper' : 'striker'}`].filter(Boolean).join(', ');
+        noGamesMsg = `No games played against this player${roleDesc ? ` when ${roleDesc}` : ''} (minimum 1 game required)`;
     }
     if (!stats) {
         result.classList.remove('hidden');

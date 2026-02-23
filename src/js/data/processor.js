@@ -931,53 +931,68 @@ class StatsProcessor {
         };
     }
 
+    /** Role is determined by position in the team array: index 0 = GK, index >= 1 = Striker (so 2v2 and 3v3 both work). */
+    _roleMatchesIndex(role, idx) {
+        if (role === 'gk') return idx === 0;
+        if (role === 'striker') return idx >= 1; // any non-GK position counts as striker
+        return true;
+    }
+
+    /**
+     * Canonical matchup between two players with optional role filters. Returns same game set
+     * regardless of order (so "jib vs shan" and "shan vs jib" get the same count).
+     * roleA, roleB: 'any' | 'gk' | 'striker'
+     * Returns { games, winsForA, winsForB } or null.
+     */
+    _getMatchupWithRole(playerA, playerB, roleA = 'any', roleB = 'any', isMonthly = false, selectedMonth = null, selectedYear = null) {
+        const aLower = playerA.toLowerCase();
+        const bLower = playerB.toLowerCase();
+        let winsForA = 0, winsForB = 0;
+        for (const game of this.games) {
+            const gameDate = new Date(game.timestamp);
+            if (isMonthly && selectedMonth !== null && selectedYear !== null && (gameDate.getMonth() !== selectedMonth || gameDate.getFullYear() !== selectedYear)) continue;
+            const t1HasA = game.team1.players.some(p => p.toLowerCase() === aLower);
+            const t2HasA = game.team2.players.some(p => p.toLowerCase() === aLower);
+            const t1HasB = game.team1.players.some(p => p.toLowerCase() === bLower);
+            const t2HasB = game.team2.players.some(p => p.toLowerCase() === bLower);
+            if (!t1HasA && !t2HasA) continue;
+            if (!t1HasB && !t2HasB) continue;
+            if (t1HasA && t1HasB) continue;
+            if (t2HasA && t2HasB) continue;
+            const teamA = t1HasA ? game.team1 : game.team2;
+            const teamB = t1HasB ? game.team1 : game.team2;
+            if (roleA !== 'any') {
+                const idx = teamA.players.findIndex(p => p.toLowerCase() === aLower);
+                if (idx === -1 || !this._roleMatchesIndex(roleA, idx)) continue;
+            }
+            if (roleB !== 'any') {
+                const idx = teamB.players.findIndex(p => p.toLowerCase() === bLower);
+                if (idx === -1 || !this._roleMatchesIndex(roleB, idx)) continue;
+            }
+            const aWon = (teamA === game.team1 && game.team1.score > game.team2.score) || (teamA === game.team2 && game.team2.score > game.team1.score);
+            if (aWon) winsForA++; else winsForB++;
+        }
+        const games = winsForA + winsForB;
+        return { games, winsForA, winsForB };
+    }
+
     /**
      * Win rate against a specific opponent, optionally only when they played as GK/Striker and/or when I played as GK/Striker.
-     * opponentRole, playerRole: 'any' | 'gk' | 'striker'
+     * Uses canonical matchup so "A vs B" and "B vs A" always show the same game count (and complementary W-L).
      */
     getOpponentWinRateWithRole(playerName, opponentName, opponentRole = 'any', playerRole = 'any', minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
         if (this.isHiddenPlayer(opponentName)) return null;
         if (opponentRole === 'any' && playerRole === 'any') {
             return this.getOpponentWinRate(playerName, opponentName, minGames, isMonthly, selectedMonth, selectedYear);
         }
-        const playerLower = playerName.toLowerCase();
-        const opponentLower = opponentName.toLowerCase();
-        const opponentIndex = opponentRole === 'any' ? null : (opponentRole === 'gk' ? 0 : 1);
-        const playerIndex = playerRole === 'any' ? null : (playerRole === 'gk' ? 0 : 1);
-        let wins = 0, losses = 0;
-        for (const game of this.games) {
-            const gameDate = new Date(game.timestamp);
-            if (isMonthly && selectedMonth !== null && selectedYear !== null && (gameDate.getMonth() !== selectedMonth || gameDate.getFullYear() !== selectedYear)) continue;
-            const t1HasPlayer = game.team1.players.some(p => p.toLowerCase() === playerLower);
-            const t2HasPlayer = game.team2.players.some(p => p.toLowerCase() === playerLower);
-            const t1HasOpponent = game.team1.players.some(p => p.toLowerCase() === opponentLower);
-            const t2HasOpponent = game.team2.players.some(p => p.toLowerCase() === opponentLower);
-            if (!t1HasPlayer && !t2HasPlayer) continue;
-            if (!t1HasOpponent && !t2HasOpponent) continue;
-            const playerOnTeam1 = t1HasPlayer;
-            const opponentOnTeam1 = t1HasOpponent;
-            if (playerOnTeam1 === opponentOnTeam1) continue;
-            const opponentTeam = opponentOnTeam1 ? game.team1 : game.team2;
-            const playerTeam = playerOnTeam1 ? game.team1 : game.team2;
-            if (opponentIndex !== null) {
-                const idx = opponentTeam.players.findIndex(p => p.toLowerCase() === opponentLower);
-                if (idx !== opponentIndex) continue;
-            }
-            if (playerIndex !== null) {
-                const idx = playerTeam.players.findIndex(p => p.toLowerCase() === playerLower);
-                if (idx !== playerIndex) continue;
-            }
-            const playerWon = (playerTeam === game.team1 && game.team1.score > game.team2.score) || (playerTeam === game.team2 && game.team2.score > game.team1.score);
-            if (playerWon) wins++; else losses++;
-        }
-        const games = wins + losses;
-        if (games < minGames) return null;
+        const raw = this._getMatchupWithRole(playerName, opponentName, playerRole, opponentRole, isMonthly, selectedMonth, selectedYear);
+        if (!raw || raw.games < minGames) return null;
         return {
             opponent: opponentName,
-            wins,
-            losses,
-            games,
-            winRate: (wins / games * 100).toFixed(1)
+            wins: raw.winsForA,
+            losses: raw.winsForB,
+            games: raw.games,
+            winRate: (raw.winsForA / raw.games * 100).toFixed(1)
         };
     }
 

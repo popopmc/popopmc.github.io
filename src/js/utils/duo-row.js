@@ -28,14 +28,16 @@ export function renderDuoRow(item, nameKey = 'teammate', iconSize = 24) {
 
 /**
  * Renders "most teamed" row (different layout: player + games G + winRate).
- * @param {{ teammate: string, games: number, winRate: number }} item
+ * @param {{ teammate?: string, opponent?: string, games: number, winRate: number }} item
  * @param {number} [iconSize=36]
+ * @param {'teammate'|'opponent'} [nameKey='teammate']
  * @returns {string}
  */
-export function renderMostTeamedRow(item, iconSize = 36) {
+export function renderMostTeamedRow(item, iconSize = 36, nameKey = 'teammate') {
+    const name = item[nameKey] || '';
     const winRateClass = item.winRate >= 50 ? 'positive' : 'negative';
     return `<div class="most-teamed-item">
-        <div class="most-teamed-player">${getPlayerNameWithIcon(item.teammate, iconSize, true)}</div>
+        <div class="most-teamed-player">${getPlayerNameWithIcon(name, iconSize, true)}</div>
         <div class="most-teamed-stats">
             <div class="most-teamed-games">${item.games} G</div>
             <div class="most-teamed-winrate ${winRateClass}">${item.winRate}%</div>

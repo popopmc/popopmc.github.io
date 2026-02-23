@@ -931,6 +931,56 @@ class StatsProcessor {
         };
     }
 
+    /**
+     * Win rate against a specific opponent, optionally only when they played as GK/Striker and/or when I played as GK/Striker.
+     * opponentRole, playerRole: 'any' | 'gk' | 'striker'
+     */
+    getOpponentWinRateWithRole(playerName, opponentName, opponentRole = 'any', playerRole = 'any', minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        if (this.isHiddenPlayer(opponentName)) return null;
+        if (opponentRole === 'any' && playerRole === 'any') {
+            return this.getOpponentWinRate(playerName, opponentName, minGames, isMonthly, selectedMonth, selectedYear);
+        }
+        const playerLower = playerName.toLowerCase();
+        const opponentLower = opponentName.toLowerCase();
+        const opponentIndex = opponentRole === 'any' ? null : (opponentRole === 'gk' ? 0 : 1);
+        const playerIndex = playerRole === 'any' ? null : (playerRole === 'gk' ? 0 : 1);
+        let wins = 0, losses = 0;
+        for (const game of this.games) {
+            const gameDate = new Date(game.timestamp);
+            if (isMonthly && selectedMonth !== null && selectedYear !== null && (gameDate.getMonth() !== selectedMonth || gameDate.getFullYear() !== selectedYear)) continue;
+            const t1HasPlayer = game.team1.players.some(p => p.toLowerCase() === playerLower);
+            const t2HasPlayer = game.team2.players.some(p => p.toLowerCase() === playerLower);
+            const t1HasOpponent = game.team1.players.some(p => p.toLowerCase() === opponentLower);
+            const t2HasOpponent = game.team2.players.some(p => p.toLowerCase() === opponentLower);
+            if (!t1HasPlayer && !t2HasPlayer) continue;
+            if (!t1HasOpponent && !t2HasOpponent) continue;
+            const playerOnTeam1 = t1HasPlayer;
+            const opponentOnTeam1 = t1HasOpponent;
+            if (playerOnTeam1 === opponentOnTeam1) continue;
+            const opponentTeam = opponentOnTeam1 ? game.team1 : game.team2;
+            const playerTeam = playerOnTeam1 ? game.team1 : game.team2;
+            if (opponentIndex !== null) {
+                const idx = opponentTeam.players.findIndex(p => p.toLowerCase() === opponentLower);
+                if (idx !== opponentIndex) continue;
+            }
+            if (playerIndex !== null) {
+                const idx = playerTeam.players.findIndex(p => p.toLowerCase() === playerLower);
+                if (idx !== playerIndex) continue;
+            }
+            const playerWon = (playerTeam === game.team1 && game.team1.score > game.team2.score) || (playerTeam === game.team2 && game.team2.score > game.team1.score);
+            if (playerWon) wins++; else losses++;
+        }
+        const games = wins + losses;
+        if (games < minGames) return null;
+        return {
+            opponent: opponentName,
+            wins,
+            losses,
+            games,
+            winRate: (wins / games * 100).toFixed(1)
+        };
+    }
+
     // Get all games sorted by date (newest first)
     getAllGames() {
         return [...this.games].sort((a, b) => {
@@ -943,6 +993,17 @@ class StatsProcessor {
     /** Games for display (e.g. game log): excludes games where a hidden player participated. Stats still use getAllGames(). */
     getAllGamesForDisplay() {
         return this.getAllGames().filter(game => !gameHasHiddenPlayer(game));
+    }
+
+    /** True if this game includes the given scrim team (by name). */
+    gameHasScrimTeam(game, teamName) {
+        const defs = StatsProcessor.getScrimTeamDefinitions();
+        const teamDef = defs.find(t => t.name === teamName);
+        if (!teamDef) return false;
+        const teamKey = this._scrimSideKey(teamDef.players);
+        const key1 = this._scrimSideKey(game.team1?.players || []);
+        const key2 = this._scrimSideKey(game.team2?.players || []);
+        return key1 === teamKey || key2 === teamKey;
     }
 
     // --- Records page helpers (count from February onwards only) ---
@@ -1396,6 +1457,228 @@ class StatsProcessor {
             goalsScored,
             lobbiesHosted
         };
+    }
+
+    // --- Scrim teams (tournament teams); order of player 2 and 3 can vary in data ---
+    /** Scrim team definitions: name and 3 player names (any order in games). */
+    static getScrimTeamDefinitions() {
+        return [
+            { name: 'Blood Brothers', players: ['rxob', 'popop', 'shan'] },
+            { name: 'Not Your Bad, Our Good!', players: ['pikeman', 'jinsye', 'anon'] },
+            { name: 'Four-Ringed Clover', players: ['gentle', 'danny', 'ash'] },
+            { name: 'Path of Pain', players: ['eri', 'wraith', 'hawk'] },
+            { name: 'San Miguel Beermen', players: ['kami', 'toph', 'katie'] },
+            { name: 'Bloc de Chi', players: ['jib', 'ella', 'akil'] }
+        ];
+    }
+
+    /** Normalized key for a side: sorted lowercase player names joined. */
+    _scrimSideKey(players) {
+        if (!players || players.length !== 3) return null;
+        return [...players].map(p => (p || '').trim().toLowerCase()).sort().join(',');
+    }
+
+    /** Which scrim team (definition) this side matches, or null. */
+    _scrimTeamForSide(players) {
+        const key = this._scrimSideKey(players);
+        if (!key) return null;
+        const defs = StatsProcessor.getScrimTeamDefinitions();
+        return defs.find(t => this._scrimSideKey(t.players) === key) || null;
+    }
+
+    /** Scrim team win rates: all games where this team played (vs scrim or random). */
+    getScrimTeamWinRates() {
+        return this.getScrimTeamStats(null, null);
+    }
+
+    /** Scrim team stats (wins, losses, games, winRate, plusMinus). Optional month/year filter. scrimVsScrimOnly: when true, only count games where both sides are scrim teams. */
+    getScrimTeamStats(selectedMonth, selectedYear, scrimVsScrimOnly = false) {
+        const defs = StatsProcessor.getScrimTeamDefinitions();
+        const rates = defs.map(t => ({ teamName: t.name, wins: 0, losses: 0, games: 0, winRate: '0.0', plusMinus: 0 }));
+        const teamKeyToIndex = new Map();
+        defs.forEach((t, i) => teamKeyToIndex.set(this._scrimSideKey(t.players), i));
+
+        const games = (selectedMonth != null && selectedYear != null)
+            ? this.games.filter(g => {
+                const d = new Date(g.timestamp);
+                return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+            })
+            : this.games;
+
+        games.forEach(game => {
+            const side1 = game.team1.players || [];
+            const side2 = game.team2.players || [];
+            const key1 = this._scrimSideKey(side1);
+            const key2 = this._scrimSideKey(side2);
+            const idx1 = teamKeyToIndex.get(key1);
+            const idx2 = teamKeyToIndex.get(key2);
+            if (scrimVsScrimOnly && (idx1 === undefined || idx2 === undefined)) return;
+            const team1Won = game.team1.score > game.team2.score;
+            const s1 = game.team1.score || 0;
+            const s2 = game.team2.score || 0;
+
+            if (idx1 !== undefined) {
+                rates[idx1].games++;
+                if (team1Won) rates[idx1].wins++; else rates[idx1].losses++;
+                rates[idx1].plusMinus += (s1 - s2);
+            }
+            if (idx2 !== undefined) {
+                rates[idx2].games++;
+                if (!team1Won) rates[idx2].wins++; else rates[idx2].losses++;
+                rates[idx2].plusMinus += (s2 - s1);
+            }
+        });
+
+        rates.forEach(r => {
+            r.winRate = r.games > 0 ? ((r.wins / r.games) * 100).toFixed(1) : '0.0';
+        });
+        return rates.sort((a, b) => b.games - a.games);
+    }
+
+    /** Head-to-head: only scrim vs scrim. Optional month/year. Returns { teams: string[], matrix }. */
+    getScrimHeadToHead(selectedMonth, selectedYear) {
+        const defs = StatsProcessor.getScrimTeamDefinitions();
+        const names = defs.map(t => t.name);
+        const teamKeyToName = new Map();
+        defs.forEach(t => teamKeyToName.set(this._scrimSideKey(t.players), t.name));
+
+        const matrix = {};
+        names.forEach(n => {
+            matrix[n] = {};
+            names.forEach(m => { if (n !== m) matrix[n][m] = { wins: 0, losses: 0 }; });
+        });
+
+        const games = (selectedMonth != null && selectedYear != null)
+            ? this.games.filter(g => {
+                const d = new Date(g.timestamp);
+                return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+            })
+            : this.games;
+
+        games.forEach(game => {
+            const side1 = game.team1.players || [];
+            const side2 = game.team2.players || [];
+            const key1 = this._scrimSideKey(side1);
+            const key2 = this._scrimSideKey(side2);
+            const name1 = teamKeyToName.get(key1);
+            const name2 = teamKeyToName.get(key2);
+            if (!name1 || !name2 || name1 === name2) return;
+
+            const team1Won = game.team1.score > game.team2.score;
+            if (team1Won) {
+                matrix[name1][name2].wins++;
+                matrix[name2][name1].losses++;
+            } else {
+                matrix[name2][name1].wins++;
+                matrix[name1][name2].losses++;
+            }
+        });
+
+        return { teams: names, matrix };
+    }
+
+    /** Win rate for one team vs another (scrim vs scrim only). Optional month/year. */
+    getTeamVsTeam(teamName, opponentName, selectedMonth, selectedYear) {
+        const { matrix } = this.getScrimHeadToHead(selectedMonth, selectedYear);
+        const cell = matrix[teamName] && matrix[teamName][opponentName];
+        if (!cell || (cell.wins + cell.losses) === 0) return null;
+        const games = cell.wins + cell.losses;
+        return {
+            wins: cell.wins,
+            losses: cell.losses,
+            games,
+            winRate: ((cell.wins / games) * 100).toFixed(1)
+        };
+    }
+
+    /** Opponent stats for a scrim team: when this team played, win rate vs each opposing player. Optional month/year. */
+    getTeamOpponentStats(teamName, minGames = 1, selectedMonth, selectedYear) {
+        const defs = StatsProcessor.getScrimTeamDefinitions();
+        const teamDef = defs.find(t => t.name === teamName);
+        if (!teamDef) return [];
+        const teamKey = this._scrimSideKey(teamDef.players);
+        const opponentMap = new Map(); // opponent player name -> { wins, losses }
+
+        const games = (selectedMonth != null && selectedYear != null)
+            ? this.games.filter(g => {
+                const d = new Date(g.timestamp);
+                return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+            })
+            : this.games;
+
+        games.forEach(game => {
+            const key1 = this._scrimSideKey(game.team1.players || []);
+            const key2 = this._scrimSideKey(game.team2.players || []);
+            const team1Won = game.team1.score > game.team2.score;
+            if (key1 === teamKey) {
+                (game.team2.players || []).forEach(opp => {
+                    if (this.isHiddenPlayer(opp)) return;
+                    if (!opponentMap.has(opp)) opponentMap.set(opp, { wins: 0, losses: 0 });
+                    const s = opponentMap.get(opp);
+                    if (team1Won) s.wins++; else s.losses++;
+                });
+            } else if (key2 === teamKey) {
+                (game.team1.players || []).forEach(opp => {
+                    if (this.isHiddenPlayer(opp)) return;
+                    if (!opponentMap.has(opp)) opponentMap.set(opp, { wins: 0, losses: 0 });
+                    const s = opponentMap.get(opp);
+                    if (!team1Won) s.wins++; else s.losses++;
+                });
+            }
+        });
+
+        return Array.from(opponentMap.entries())
+            .filter(([, s]) => (s.wins + s.losses) >= minGames)
+            .map(([opponent, s]) => {
+                const gamesCount = s.wins + s.losses;
+                return {
+                    opponent,
+                    wins: s.wins,
+                    losses: s.losses,
+                    games: gamesCount,
+                    winRate: parseFloat(((s.wins / gamesCount) * 100).toFixed(1))
+                };
+            });
+    }
+
+    /** Team vs single player: this team's W-L in games where that player was on the opposing side. */
+    getTeamVsPlayerWinRate(teamName, playerName, minGames = 1, selectedMonth, selectedYear) {
+        const opponents = this.getTeamOpponentStats(teamName, minGames, selectedMonth, selectedYear);
+        const found = opponents.find(o => o.opponent.toLowerCase() === playerName.toLowerCase());
+        if (!found) return null;
+        return {
+            opponent: found.opponent,
+            wins: found.wins,
+            losses: found.losses,
+            games: found.games,
+            winRate: found.winRate.toFixed(1)
+        };
+    }
+
+    /** Team's scrim games in chronological order with win/loss. Used for winstreak and last 10. */
+    getTeamScrimGamesOrdered(teamName, selectedMonth, selectedYear) {
+        const defs = StatsProcessor.getScrimTeamDefinitions();
+        const teamDef = defs.find(t => t.name === teamName);
+        if (!teamDef) return [];
+        const teamKey = this._scrimSideKey(teamDef.players);
+        let games = this.games.filter(g => {
+            const key1 = this._scrimSideKey(g.team1.players || []);
+            const key2 = this._scrimSideKey(g.team2.players || []);
+            return key1 === teamKey || key2 === teamKey;
+        });
+        if (selectedMonth != null && selectedYear != null) {
+            games = games.filter(g => {
+                const d = new Date(g.timestamp);
+                return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+            });
+        }
+        games.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        return games.map(game => {
+            const key1 = this._scrimSideKey(game.team1.players || []);
+            const team1Won = game.team1.score > game.team2.score;
+            const won = key1 === teamKey ? team1Won : !team1Won;
+            return { won };
+        });
     }
 }
 

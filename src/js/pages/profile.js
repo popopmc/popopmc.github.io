@@ -206,36 +206,33 @@ export function populateOpponentDropdown() {}
 export function loadSynergy(playerName) {
     if (!state.statsProcessor) return;
     const isMonthly = state.synergyPeriod === 'monthly';
-    const topDuos = state.statsProcessor.getTopDuos(playerName, 1, isMonthly, state.synergySelectedMonth, state.synergySelectedYear);
-    const topDuosList = document.getElementById('topDuosList');
-    if (topDuosList) {
-        topDuosList.innerHTML = topDuos.length === 0 ? emptyStateHtml('No duo data available') : topDuos.map(d => renderDuoRow(d, 'teammate', 24)).join('');
-    }
-    const bottomDuos = state.statsProcessor.getBottomDuos(playerName, 1, isMonthly, state.synergySelectedMonth, state.synergySelectedYear);
-    const bottomDuosList = document.getElementById('bottomDuosList');
-    if (bottomDuosList) {
-        bottomDuosList.innerHTML = bottomDuos.length === 0 ? emptyStateHtml('No duo data available') : bottomDuos.map(d => renderDuoRow(d, 'teammate', 24)).join('');
-    }
     const allDuos = state.statsProcessor.getPlayerDuoStats(playerName, 1, isMonthly, state.synergySelectedMonth, state.synergySelectedYear);
+    const duosSortedByWinRate = [...allDuos].sort((a, b) => (b.winRate !== a.winRate) ? (b.winRate - a.winRate) : (b.games - a.games));
+    const duosList = document.getElementById('duosList');
+    if (duosList) {
+        duosList.innerHTML = duosSortedByWinRate.length === 0 ? emptyStateHtml('No duo data available') : duosSortedByWinRate.map(d => renderDuoRow(d, 'teammate', 24)).join('');
+    }
     const mostTeamedList = document.getElementById('mostTeamedList');
     if (mostTeamedList) {
-        const sortedDuos = allDuos.sort((a, b) => (b.games !== a.games) ? (b.games - a.games) : (b.winRate - a.winRate));
+        const sortedDuos = [...allDuos].sort((a, b) => (b.games !== a.games) ? (b.games - a.games) : (b.winRate - a.winRate));
         mostTeamedList.innerHTML = sortedDuos.length === 0 ? emptyStateHtml('No teammate data available') : sortedDuos.map(d => renderMostTeamedRow(d, 36)).join('');
+    }
+    const allOpponents = state.statsProcessor.getOpponentStats(playerName, 1, isMonthly, state.synergySelectedMonth, state.synergySelectedYear);
+    const opponentsByGames = [...allOpponents].sort((a, b) => (b.games !== a.games) ? (b.games - a.games) : (b.winRate - a.winRate));
+    const mostAgainstList = document.getElementById('mostAgainstList');
+    if (mostAgainstList) {
+        mostAgainstList.innerHTML = opponentsByGames.length === 0 ? emptyStateHtml('No opponent data available') : opponentsByGames.map(opp => renderMostTeamedRow(opp, 36, 'opponent')).join('');
     }
 }
 
 export function loadMatchups(playerName) {
     if (!state.statsProcessor) return;
     const isMonthly = state.matchupsPeriod === 'monthly';
-    const topOpponents = state.statsProcessor.getTopOpponents(playerName, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
-    const topOpponentsList = document.getElementById('topOpponentsList');
-    if (topOpponentsList) {
-        topOpponentsList.innerHTML = topOpponents.length === 0 ? emptyStateHtml('No matchup data available') : topOpponents.map(opp => renderDuoRow(opp, 'opponent', 24)).join('');
-    }
-    const bottomOpponents = state.statsProcessor.getBottomOpponents(playerName, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
-    const bottomOpponentsList = document.getElementById('bottomOpponentsList');
-    if (bottomOpponentsList) {
-        bottomOpponentsList.innerHTML = bottomOpponents.length === 0 ? emptyStateHtml('No matchup data available') : bottomOpponents.map(opp => renderDuoRow(opp, 'opponent', 24)).join('');
+    const allOpponents = state.statsProcessor.getOpponentStats(playerName, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
+    const opponentsSorted = [...allOpponents].sort((a, b) => (b.winRate !== a.winRate) ? (b.winRate - a.winRate) : (b.games - a.games));
+    const opponentsList = document.getElementById('opponentsList');
+    if (opponentsList) {
+        opponentsList.innerHTML = opponentsSorted.length === 0 ? emptyStateHtml('No matchup data available') : opponentsSorted.map(opp => renderDuoRow(opp, 'opponent', 24)).join('');
     }
 }
 
@@ -255,9 +252,11 @@ export function handleOpponentLookup() {
         title = `${getPlayerNameWithIcon(state.currentPlayerName.toUpperCase(), 28, false)} & ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}`;
         noGamesMsg = 'No games played together (minimum 1 game required)';
     } else {
-        stats = state.statsProcessor.getOpponentWinRate(state.currentPlayerName, selectedPlayer, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
-        title = `${getPlayerNameWithIcon(state.currentPlayerName.toUpperCase(), 28, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}`;
-        noGamesMsg = 'No games played against this player (minimum 1 game required)';
+        const role = state.lookupAgainstRole || 'any';
+        stats = state.statsProcessor.getOpponentWinRateWithRole(state.currentPlayerName, selectedPlayer, role, 1, isMonthly, state.matchupsSelectedMonth, state.matchupsSelectedYear);
+        const roleLabel = role === 'any' ? '' : ` (as ${role === 'gk' ? 'Goalkeeper' : 'Striker'})`;
+        title = `${getPlayerNameWithIcon(state.currentPlayerName.toUpperCase(), 28, false)} vs ${getPlayerNameWithIcon(selectedPlayer.toUpperCase(), 28, false)}${roleLabel}`;
+        noGamesMsg = `No games played against this player${role === 'any' ? '' : ` when they played as ${role === 'gk' ? 'goalkeeper' : 'striker'}`} (minimum 1 game required)`;
     }
     if (!stats) {
         result.classList.remove('hidden');
@@ -296,6 +295,40 @@ export function toggleLookupMode(mode) {
             againstToggle.classList.add('active');
         }
     }
+    const roleRow = document.getElementById('lookupAgainstRoleRow');
+    const myRoleRow = document.getElementById('lookupPlayerRoleRow');
+    if (roleRow) roleRow.style.display = mode === 'against' ? '' : 'none';
+    if (myRoleRow) myRoleRow.style.display = mode === 'against' ? '' : 'none';
+    const result = document.getElementById('opponentLookupResult');
+    if (result) {
+        result.innerHTML = '';
+        result.classList.add('hidden');
+    }
+}
+
+export function setLookupAgainstRole(role) {
+    state.lookupAgainstRole = role;
+    const anyBtn = document.getElementById('roleAnyBtn');
+    const strikerBtn = document.getElementById('roleStrikerBtn');
+    const gkBtn = document.getElementById('roleGkBtn');
+    [anyBtn, strikerBtn, gkBtn].forEach(btn => {
+        if (btn) btn.classList.toggle('active', btn.dataset.role === role);
+    });
+    const result = document.getElementById('opponentLookupResult');
+    if (result) {
+        result.innerHTML = '';
+        result.classList.add('hidden');
+    }
+}
+
+export function setLookupPlayerRole(role) {
+    state.lookupPlayerRole = role;
+    const anyBtn = document.getElementById('myRoleAnyBtn');
+    const strikerBtn = document.getElementById('myRoleStrikerBtn');
+    const gkBtn = document.getElementById('myRoleGkBtn');
+    [anyBtn, strikerBtn, gkBtn].forEach(btn => {
+        if (btn) btn.classList.toggle('active', btn.dataset.role === role);
+    });
     const result = document.getElementById('opponentLookupResult');
     if (result) {
         result.innerHTML = '';

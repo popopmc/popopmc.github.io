@@ -12,6 +12,8 @@ import {
     showPlayersPage,
     showGameLogPage,
     showRecordsPage,
+    showTeamsPage,
+    showScrimsPage,
     showPlayerProfile,
     updateActiveNavLink
 } from './pages/navigation.js';
@@ -24,11 +26,22 @@ import {
     sortRosterTable
 } from './pages/players.js';
 import {
+    loadTeamsPage,
+    scrollTeamsCarousel,
+    sortTeamsTable,
+    filterTeamsTable,
+    showTeamProfile,
+    loadTeamProfile,
+    handleTeamLookup
+} from './pages/teams.js';
+import {
     loadPlayerProfile,
     loadSynergy,
     loadMatchups,
     switchProfileTab,
     toggleLookupMode,
+    setLookupAgainstRole,
+    setLookupPlayerRole,
     handleOpponentLookup,
     updateLastUpdated
 } from './pages/profile.js';
@@ -65,6 +78,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const opponentLookupBtn = document.getElementById('opponentLookupBtn');
     if (opponentLookupBtn) opponentLookupBtn.addEventListener('click', handleOpponentLookup);
+
+    const roleAnyBtn = document.getElementById('roleAnyBtn');
+    const roleStrikerBtn = document.getElementById('roleStrikerBtn');
+    const roleGkBtn = document.getElementById('roleGkBtn');
+    if (roleAnyBtn) roleAnyBtn.addEventListener('click', () => setLookupAgainstRole('any'));
+    if (roleStrikerBtn) roleStrikerBtn.addEventListener('click', () => setLookupAgainstRole('striker'));
+    if (roleGkBtn) roleGkBtn.addEventListener('click', () => setLookupAgainstRole('gk'));
+
+    const myRoleAnyBtn = document.getElementById('myRoleAnyBtn');
+    const myRoleStrikerBtn = document.getElementById('myRoleStrikerBtn');
+    const myRoleGkBtn = document.getElementById('myRoleGkBtn');
+    if (myRoleAnyBtn) myRoleAnyBtn.addEventListener('click', () => setLookupPlayerRole('any'));
+    if (myRoleStrikerBtn) myRoleStrikerBtn.addEventListener('click', () => setLookupPlayerRole('striker'));
+    if (myRoleGkBtn) myRoleGkBtn.addEventListener('click', () => setLookupPlayerRole('gk'));
 
     document.querySelectorAll('.profile-tab').forEach(btn => {
         btn.addEventListener('click', () => switchProfileTab(btn.dataset.tab));
@@ -116,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { selectId: 'profileMonthSelect', yearKey: 'profileSelectedYear', monthKey: 'profileSelectedMonth', onApply: () => state.currentPlayerName && loadPlayerProfile(state.currentPlayerName) },
         { selectId: 'synergyMonthSelect', yearKey: 'synergySelectedYear', monthKey: 'synergySelectedMonth', onApply: () => state.currentPlayerName && loadSynergy(state.currentPlayerName) },
         { selectId: 'matchupsMonthSelect', yearKey: 'matchupsSelectedYear', monthKey: 'matchupsSelectedMonth', onApply: () => state.currentPlayerName && loadMatchups(state.currentPlayerName) },
-        { selectId: 'rosterMonthSelect', yearKey: 'rosterSelectedYear', monthKey: 'rosterSelectedMonth', onApply: loadPlayersPage }
+        { selectId: 'rosterMonthSelect', yearKey: 'rosterSelectedYear', monthKey: 'rosterSelectedMonth', onApply: loadPlayersPage },
     ];
     monthSelectConfig.forEach(({ selectId, yearKey, monthKey, onApply }) => {
         const el = document.getElementById(selectId);
@@ -133,6 +160,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (carouselLeftBtn) carouselLeftBtn.addEventListener('click', () => scrollCarousel('left'));
     if (carouselRightBtn) carouselRightBtn.addEventListener('click', () => scrollCarousel('right'));
 
+    const teamsCarouselLeft = document.getElementById('teamsCarouselLeftBtn');
+    const teamsCarouselRight = document.getElementById('teamsCarouselRightBtn');
+    if (teamsCarouselLeft) teamsCarouselLeft.addEventListener('click', () => scrollTeamsCarousel('left'));
+    if (teamsCarouselRight) teamsCarouselRight.addEventListener('click', () => scrollTeamsCarousel('right'));
+
+    const navTeamsDropdown = document.getElementById('navTeamsDropdown');
+    const navTeamsTrigger = document.getElementById('navTeamsTrigger');
+    if (navTeamsDropdown && navTeamsTrigger) {
+        navTeamsTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isOpen = navTeamsDropdown.classList.toggle('is-open');
+            navTeamsTrigger.setAttribute('aria-expanded', isOpen);
+        });
+        navTeamsDropdown.querySelectorAll('.nav-dropdown-item').forEach((item) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                navTeamsDropdown.classList.remove('is-open');
+                navTeamsTrigger.setAttribute('aria-expanded', 'false');
+                if (item.dataset.nav === 'scrims') showScrimsPage();
+                else showTeamsPage();
+            });
+        });
+    }
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.nav-dropdown')) return;
+        const d = document.getElementById('navTeamsDropdown');
+        if (d) {
+            d.classList.remove('is-open');
+            const t = document.getElementById('navTeamsTrigger');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+
     const playerSearch = document.getElementById('playerSearch');
     if (playerSearch) playerSearch.addEventListener('input', filterRosterTable);
 
@@ -142,6 +202,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (column) sortRosterTable(column);
         });
     });
+    document.querySelectorAll('.teams-roster-table .sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.getAttribute('data-sort');
+            if (column) sortTeamsTable(column);
+        });
+    });
+
+    const teamSearch = document.getElementById('teamSearch');
+    if (teamSearch) teamSearch.addEventListener('input', filterTeamsTable);
+
+    const teamsScrimOnlyToggle = document.getElementById('teamsScrimOnlyToggle');
+    if (teamsScrimOnlyToggle) teamsScrimOnlyToggle.addEventListener('change', () => {
+        state.teamsScrimVsScrimOnly = teamsScrimOnlyToggle.checked;
+        loadTeamsPage();
+    });
+
+    const teamLookupBtn = document.getElementById('teamLookupBtn');
+    if (teamLookupBtn) teamLookupBtn.addEventListener('click', handleTeamLookup);
 
     const recordsSearchForm = document.getElementById('recordsSearchForm');
     const recordsPlayerSearchInput = document.getElementById('recordsPlayerSearch');
@@ -185,12 +263,92 @@ document.addEventListener('DOMContentLoaded', () => {
             return list.filter(n => n.toLowerCase() !== cur.toLowerCase());
         });
     }
+    const teamOpponentSelect = document.getElementById('teamOpponentSelect');
+    if (teamOpponentSelect) {
+        createPlayerAutocomplete(teamOpponentSelect, () => {
+            const list = (state.statsProcessor?.getPlayerStats(1) || []).map(p => p.name);
+            const teamName = state.currentTeamName;
+            if (!teamName) return list;
+            const defs = state.statsProcessor?.constructor.getScrimTeamDefinitions() || [];
+            const teamDef = defs.find(t => t.name === teamName);
+            const onTeam = new Set((teamDef?.players || []).map(p => p.toLowerCase()));
+            return list.filter(n => !onTeam.has(n.toLowerCase()));
+        });
+    }
+
+    const gameLogFilterBtn = document.getElementById('gameLogFilterBtn');
+    const gameLogFilterPanel = document.getElementById('gameLogFilterPanel');
+    if (gameLogFilterBtn && gameLogFilterPanel) {
+        gameLogFilterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = gameLogFilterPanel.hidden;
+            gameLogFilterPanel.hidden = !isOpen;
+            gameLogFilterBtn.classList.toggle('active', !isOpen);
+        });
+        gameLogFilterPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+    document.addEventListener('click', () => {
+        if (gameLogFilterPanel && !gameLogFilterPanel.hidden) {
+            gameLogFilterPanel.hidden = true;
+            if (gameLogFilterBtn) gameLogFilterBtn.classList.remove('active');
+        }
+    });
+
+    const gameLogFilterPlayerInput = document.getElementById('gameLogFilterPlayer');
+    if (gameLogFilterPlayerInput) {
+        createPlayerAutocomplete(gameLogFilterPlayerInput, () => (state.statsProcessor?.getPlayerStats(1) || []).map(p => p.name), {
+            onSelect(name) {
+                state.gameLogFilterPlayer = name;
+                state.gameLogCurrentPage = 1;
+                loadGameLog();
+            }
+        });
+    }
+    const gameLogFilterRoleSelect = document.getElementById('gameLogFilterRole');
+    if (gameLogFilterRoleSelect) {
+        gameLogFilterRoleSelect.addEventListener('change', () => {
+            state.gameLogFilterRole = gameLogFilterRoleSelect.value;
+            if (gameLogFilterPlayerInput) state.gameLogFilterPlayer = (gameLogFilterPlayerInput.value || '').trim() || null;
+            state.gameLogCurrentPage = 1;
+            loadGameLog();
+        });
+    }
+    const gameLogFilterScrimTeamSelect = document.getElementById('gameLogFilterScrimTeam');
+    if (gameLogFilterScrimTeamSelect) {
+        gameLogFilterScrimTeamSelect.addEventListener('change', () => {
+            state.gameLogFilterScrimTeam = gameLogFilterScrimTeamSelect.value || null;
+            if (gameLogFilterPlayerInput) state.gameLogFilterPlayer = (gameLogFilterPlayerInput.value || '').trim() || null;
+            state.gameLogCurrentPage = 1;
+            loadGameLog();
+        });
+    }
+    const gameLogFilterClearBtn = document.getElementById('gameLogFilterClear');
+    if (gameLogFilterClearBtn) {
+        gameLogFilterClearBtn.addEventListener('click', () => {
+            state.gameLogFilterPlayer = null;
+            state.gameLogFilterRole = 'any';
+            state.gameLogFilterScrimTeam = null;
+            state.gameLogCurrentPage = 1;
+            const pi = document.getElementById('gameLogFilterPlayer');
+            if (pi) pi.value = '';
+            const rs = document.getElementById('gameLogFilterRole');
+            if (rs) rs.value = 'any';
+            const ts = document.getElementById('gameLogFilterScrimTeam');
+            if (ts) ts.value = '';
+            loadGameLog();
+            if (gameLogFilterPanel) gameLogFilterPanel.hidden = true;
+            if (gameLogFilterBtn) gameLogFilterBtn.classList.remove('active');
+        });
+    }
 
     window.showPlayerProfile = showPlayerProfile;
     window.goBackHome = goBackHome;
     window.showPlayersPage = showPlayersPage;
     window.showGameLogPage = showGameLogPage;
     window.showRecordsPage = showRecordsPage;
+    window.showTeamsPage = showTeamsPage;
+    window.showScrimsPage = showScrimsPage;
+    window.showTeamProfile = showTeamProfile;
     window.showRecordsCategory = showRecordsCategory;
     window.toggleRecordsNewsExpanded = toggleRecordsNewsExpanded;
 
@@ -209,8 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const homeLink = document.querySelector('.nav-link[onclick*="goBackHome"]');
-    if (homeLink) updateActiveNavLink(homeLink);
+    updateActiveNavLink(null);
 
     updateLastUpdated();
 });

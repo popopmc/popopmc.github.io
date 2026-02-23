@@ -11,6 +11,7 @@ export const state = {
     synergyPeriod: 'alltime',
     matchupsPeriod: 'alltime',
     rosterPeriod: 'alltime',
+    teamsScrimVsScrimOnly: true,
 
     profileSelectedMonth: null,
     profileSelectedYear: null,
@@ -20,15 +21,30 @@ export const state = {
     matchupsSelectedYear: null,
     rosterSelectedMonth: null,
     rosterSelectedYear: null,
+    teamsSelectedMonth: null,
+    teamsSelectedYear: null,
 
     gameLogCurrentPage: 1,
     gameLogRowsPerPage: 50,
+    gameLogFilterPlayer: null,
+    gameLogFilterRole: 'any',
+    gameLogFilterScrimTeam: null,
 
     rosterPlayers: [],
     rosterSortColumn: null,
     rosterSortDirection: 'asc',
+    rosterTeams: [],
+    teamsSortColumn: null,
+    teamsSortDirection: 'asc',
+
+    teamsCarouselIndex: 0,
+    currentTeamName: '',
 
     lookupMode: 'against',
+    /** When lookup is "against": 'any' | 'striker' | 'gk' */
+    lookupAgainstRole: 'any',
+    /** When lookup is "against": my role filter 'any' | 'striker' | 'gk' */
+    lookupPlayerRole: 'any',
 
     playerAccolades: new Map(),
 

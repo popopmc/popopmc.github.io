@@ -590,7 +590,7 @@
 
 .synergy-wrapper {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 1rem;
     margin-bottom: 2rem;
     align-items: start;
@@ -605,6 +605,30 @@
     border-radius: 8px;
 }
 
+.synergy-lists-container.synergy-duos-single {
+    grid-template-columns: 1fr;
+}
+
+.synergy-duos-box .duo-list-scrollable {
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.synergy-duos-box .duo-list-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.synergy-duos-box .duo-list-scrollable::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 3px;
+}
+
+.synergy-duos-box .duo-list-scrollable::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
 .matchups-lists-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -613,6 +637,30 @@
     background-color: rgba(200, 200, 200, 0.3);
     padding: 1rem;
     border-radius: 8px;
+}
+
+.matchups-lists-container.matchups-single {
+    grid-template-columns: 1fr;
+}
+
+.matchups-against-box .duo-list-scrollable {
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.matchups-against-box .duo-list-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.matchups-against-box .duo-list-scrollable::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 3px;
+}
+
+.matchups-against-box .duo-list-scrollable::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
 }
 
 .synergy-top,
@@ -625,7 +673,8 @@
     border-radius: 8px;
 }
 
-.synergy-most-teamed {
+.synergy-most-teamed,
+.synergy-most-against {
     display: flex;
     flex-direction: column;
     max-height: 400px;
@@ -825,6 +874,24 @@
     padding: 0.25rem;
     border-radius: 6px;
     width: fit-content;
+}
+
+.lookup-against-role {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.lookup-role-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.lookup-against-role .lookup-role-toggle {
+    margin-bottom: 0;
 }
 
 .toggle-btn {

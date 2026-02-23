@@ -162,7 +162,8 @@
         gap: 1.5rem;
     }
     
-    .synergy-most-teamed {
+    .synergy-most-teamed,
+    .synergy-most-against {
         width: 100%;
     }
     

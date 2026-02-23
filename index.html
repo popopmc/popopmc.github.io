@@ -20,7 +20,13 @@
                 PUB STATS
             </a>
             <div class="nav-links">
-                <a href="#" class="nav-link" onclick="goBackHome(); return false;">Stats Home</a>
+                <div class="nav-dropdown" id="navTeamsDropdown">
+                    <a href="#" class="nav-link nav-dropdown-trigger" id="navTeamsTrigger" aria-haspopup="true" aria-expanded="false">Teams <span class="nav-dropdown-arrow" aria-hidden="true">▾</span></a>
+                    <div class="nav-dropdown-menu" role="menu">
+                        <a href="#" class="nav-dropdown-item" role="menuitem" data-nav="teams">Roster</a>
+                        <a href="#" class="nav-dropdown-item" role="menuitem" data-nav="scrims">Scrims</a>
+                    </div>
+                </div>
                 <a href="#" class="nav-link" onclick="showPlayersPage(); return false;">Players</a>
                 <a href="#" class="nav-link" onclick="showGameLogPage(); return false;">Game Log</a>
                 <a href="#" class="nav-link" onclick="showRecordsPage(); return false;">Records</a>
@@ -32,6 +38,32 @@
     <div class="game-log-page" id="gameLogPage" style="display: none;">
         <div class="game-log-header">
             <h1 class="game-log-title">Game Log</h1>
+            <div class="game-log-header-actions">
+                <button type="button" class="game-log-filter-btn" id="gameLogFilterBtn" aria-label="Filter games" title="Filter games">
+                    <svg class="game-log-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
+                </button>
+                <div class="game-log-filter-panel" id="gameLogFilterPanel" hidden>
+                    <div class="game-log-filter-section">
+                        <label class="game-log-filter-label">Player</label>
+                        <input type="text" id="gameLogFilterPlayer" class="player-search-input game-log-filter-input" placeholder="Any player" autocomplete="off">
+                        <label class="game-log-filter-label">Role</label>
+                        <select id="gameLogFilterRole" class="game-log-filter-select">
+                            <option value="any">Any</option>
+                            <option value="gk">GK only</option>
+                            <option value="striker">Striker only</option>
+                        </select>
+                    </div>
+                    <div class="game-log-filter-section">
+                        <label class="game-log-filter-label">Scrim team</label>
+                        <select id="gameLogFilterScrimTeam" class="game-log-filter-select">
+                            <option value="">All teams</option>
+                        </select>
+                    </div>
+                    <div class="game-log-filter-actions">
+                        <button type="button" class="game-log-filter-clear" id="gameLogFilterClear">Clear filters</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="game-log-peek" aria-hidden="true">
             <img src="src/assets/background/chansey.png" alt="">
@@ -104,6 +136,61 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Teams Page -->
+    <div class="teams-page" id="teamsPage" style="display: none;">
+        <div class="teams-page-header">
+            <h2 class="teams-page-title">TEAMS</h2>
+        </div>
+        <div class="teams-carousel-container">
+            <button class="carousel-btn carousel-btn-left" id="teamsCarouselLeftBtn">←</button>
+            <div class="teams-carousel" id="teamsCarousel">
+                <!-- Team cards populated by JavaScript -->
+            </div>
+            <button class="carousel-btn carousel-btn-right" id="teamsCarouselRightBtn">→</button>
+        </div>
+        <div class="teams-roster-section">
+            <div class="roster-header">
+                <h2 class="roster-title">TEAM ROSTER</h2>
+                <div class="roster-controls">
+                    <label class="teams-toggle-label">
+                        <input type="checkbox" id="teamsScrimOnlyToggle" class="teams-scrim-only-toggle" checked>
+                        <span class="teams-toggle-slider"></span>
+                        <span class="teams-toggle-text">Scrim vs scrim only</span>
+                    </label>
+                    <input type="text" id="teamSearch" class="player-search player-search-input" placeholder="Search Teams" autocomplete="off">
+                </div>
+            </div>
+            <div class="roster-table-container">
+                <table class="roster-table teams-roster-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="name">TEAM <span class="sort-indicator"></span></th>
+                            <th class="sortable" data-sort="wins">WINS <span class="sort-indicator"></span></th>
+                            <th class="sortable" data-sort="losses">LOSSES <span class="sort-indicator"></span></th>
+                            <th class="sortable" data-sort="winRate">WIN RATE <span class="sort-indicator"></span></th>
+                            <th class="sortable" data-sort="plusMinus">+/- <span class="sort-indicator"></span></th>
+                            <th class="sortable" data-sort="games">GAMES <span class="sort-indicator"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scrims Page -->
+    <div class="scrims-page" id="scrimsPage" style="display: none;">
+        <div class="scrims-header">
+            <h1 class="scrims-title">Scrim Stats</h1>
+            <p class="scrims-subtitle">Head-to-head (scrim vs scrim only)</p>
+        </div>
+        <div class="scrims-content" id="scrimsContent">
+            <!-- Populated by JavaScript -->
         </div>
     </div>
 
@@ -223,16 +310,10 @@
                     </select>
                 </div>
                 <div class="synergy-wrapper">
-                    <div class="synergy-lists-container">
-                        <div class="synergy-top">
-                            <h3 class="synergy-title">Top 5 Win Rates with Duos</h3>
-                            <div class="duo-list" id="topDuosList">
-                                <!-- Will be populated by JavaScript -->
-                            </div>
-                        </div>
-                        <div class="synergy-bottom">
-                            <h3 class="synergy-title">Bottom 5 Win Rates with Duos</h3>
-                            <div class="duo-list" id="bottomDuosList">
+                    <div class="synergy-lists-container synergy-duos-single">
+                        <div class="synergy-top synergy-duos-box">
+                            <h3 class="synergy-title">Win Rate with Duos</h3>
+                            <div class="duo-list duo-list-scrollable" id="duosList">
                                 <!-- Will be populated by JavaScript -->
                             </div>
                         </div>
@@ -240,6 +321,12 @@
                     <div class="synergy-most-teamed">
                         <h3 class="synergy-title">Most Teamed With</h3>
                         <div class="most-teamed-list" id="mostTeamedList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="synergy-most-against">
+                        <h3 class="synergy-title">Most Teamed Against</h3>
+                        <div class="most-teamed-list" id="mostAgainstList">
                             <!-- Will be populated by JavaScript -->
                         </div>
                     </div>
@@ -257,16 +344,10 @@
                         <!-- Will be populated by JavaScript -->
                     </select>
                 </div>
-                <div class="matchups-lists-container">
-                    <div class="matchups-top">
-                        <h3 class="synergy-title">Top 5 Win Rates Against</h3>
-                        <div class="duo-list" id="topOpponentsList">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    <div class="matchups-bottom">
-                        <h3 class="synergy-title">Bottom 5 Win Rates Against</h3>
-                        <div class="duo-list" id="bottomOpponentsList">
+                <div class="matchups-lists-container matchups-single">
+                    <div class="matchups-top matchups-against-box">
+                        <h3 class="synergy-title">Win Rate Against</h3>
+                        <div class="duo-list duo-list-scrollable" id="opponentsList">
                             <!-- Will be populated by JavaScript -->
                         </div>
                     </div>
@@ -277,11 +358,58 @@
                         <button class="toggle-btn active" id="withToggle" data-mode="with">With</button>
                         <button class="toggle-btn" id="againstToggle" data-mode="against">Against</button>
                     </div>
+                    <div class="lookup-against-role" id="lookupAgainstRoleRow" style="display: none;">
+                        <span class="lookup-role-label">When they played as</span>
+                        <div class="lookup-toggle lookup-role-toggle">
+                            <button class="toggle-btn active" id="roleAnyBtn" data-role="any">Any</button>
+                            <button class="toggle-btn" id="roleStrikerBtn" data-role="striker">Striker</button>
+                            <button class="toggle-btn" id="roleGkBtn" data-role="gk">Goalkeeper</button>
+                        </div>
+                    </div>
+                    <div class="lookup-against-role" id="lookupPlayerRoleRow" style="display: none;">
+                        <span class="lookup-role-label">When I played as</span>
+                        <div class="lookup-toggle lookup-role-toggle">
+                            <button class="toggle-btn active" id="myRoleAnyBtn" data-role="any">Any</button>
+                            <button class="toggle-btn" id="myRoleStrikerBtn" data-role="striker">Striker</button>
+                            <button class="toggle-btn" id="myRoleGkBtn" data-role="gk">Goalkeeper</button>
+                        </div>
+                    </div>
                     <div class="lookup-controls">
                         <input type="text" id="opponentSelect" class="player-search-input" placeholder="Select a player..." autocomplete="off">
                         <button id="opponentLookupBtn" class="lookup-btn">Lookup</button>
                     </div>
                     <div class="lookup-result" id="opponentLookupResult"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Profile Page -->
+    <div class="team-profile-page" id="teamProfilePage" style="display: none;">
+        <a href="#" class="team-profile-back" onclick="showTeamsPage(); return false;">← Back to Teams</a>
+        <div class="team-profile-banner" id="teamProfileBanner">
+            <div class="team-profile-header" id="teamProfileHeader">
+                <!-- Team name + roster populated by JavaScript -->
+            </div>
+            <div class="team-profile-stats" id="teamProfileStats">
+                <!-- Stats grid populated by JavaScript -->
+            </div>
+        </div>
+        <div class="team-profile-content">
+            <div class="team-profile-section matchups-section">
+                <div class="matchups-lists-container matchups-single">
+                    <div class="matchups-top matchups-against-box">
+                        <h3 class="synergy-title">Win Rate Against</h3>
+                        <div class="duo-list duo-list-scrollable" id="teamOpponentsList"></div>
+                    </div>
+                </div>
+                <div class="opponent-lookup-section">
+                    <h3 class="synergy-title">Lookup Win Rate vs Player</h3>
+                    <div class="lookup-controls">
+                        <input type="text" id="teamOpponentSelect" class="player-search-input" placeholder="Select a player..." autocomplete="off">
+                        <button id="teamLookupBtn" class="lookup-btn">Lookup</button>
+                    </div>
+                    <div class="lookup-result" id="teamLookupResult"></div>
                 </div>
             </div>
         </div>

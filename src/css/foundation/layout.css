@@ -58,6 +58,74 @@
     transition: color 0.2s ease;
 }
 
+/* Nav dropdown: Teams (click-to-open so it doesn’t disappear) */
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+}
+
+.nav-dropdown-arrow {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    transition: transform 0.2s ease;
+}
+
+.nav-dropdown.is-open .nav-dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+    min-width: 120px;
+    padding: 0.25rem 0;
+    background: var(--content-bg, #fff);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: none;
+    z-index: 200;
+}
+
+.nav-dropdown.is-open .nav-dropdown-menu {
+    display: block;
+}
+
+.nav-dropdown-item {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.nav-dropdown-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.nav-dropdown-item:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+.nav-dropdown-item + .nav-dropdown-item {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.nav-dropdown-item:hover {
+    background: rgba(142, 125, 190, 0.1);
+    color: var(--tab-active, #8e7dbe);
+}
+
 /* --- Players page --- */
 .players-page {
     margin: 0 auto;

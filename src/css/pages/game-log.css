@@ -9,6 +9,11 @@
 
 .game-log-header {
     margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .game-log-title {
@@ -16,6 +21,117 @@
     font-weight: 700;
     color: var(--text-primary);
     margin: 0;
+}
+
+.game-log-header-actions {
+    position: relative;
+}
+
+.game-log-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--content-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.game-log-filter-btn:hover {
+    background: rgba(142, 125, 190, 0.1);
+    color: var(--tab-active);
+    border-color: var(--tab-active);
+}
+
+.game-log-filter-btn.active {
+    background: rgba(142, 125, 190, 0.15);
+    color: var(--tab-active);
+    border-color: var(--tab-active);
+}
+
+.game-log-filter-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.game-log-filter-panel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    min-width: 260px;
+    padding: 1rem;
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+}
+
+.game-log-filter-panel[hidden] {
+    display: none;
+}
+
+.game-log-filter-panel:not([hidden]) {
+    display: block;
+}
+
+.game-log-filter-section {
+    margin-bottom: 1rem;
+}
+
+.game-log-filter-section:last-of-type {
+    margin-bottom: 0.75rem;
+}
+
+.game-log-filter-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.game-log-filter-input,
+.game-log-filter-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--content-bg);
+    color: var(--text-primary);
+}
+
+.game-log-filter-select {
+    cursor: pointer;
+}
+
+.game-log-filter-actions {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.game-log-filter-clear {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.game-log-filter-clear:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
 }
 
 .game-log-peek {

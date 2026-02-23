@@ -1,16 +1,65 @@
 /**
- * Game log page: table, pagination, game rows.
+ * Game log page: table, pagination, game rows, filters (player/role, scrim team).
  */
 
 import { state } from '../state/store.js';
 import { getPlayerNameWithIcon } from '../utils/profile-pictures.js';
 import { emptyStateHtml } from '../utils/dom.js';
 
+function gameMatchesPlayerFilter(game, playerName, role) {
+    if (!playerName || !playerName.trim()) return true;
+    const name = playerName.trim().toLowerCase();
+    const t1 = game.team1?.players || [];
+    const t2 = game.team2?.players || [];
+    const hasPlayer = (players) => players && players.some(p => p && p.toLowerCase() === name);
+    const asGK = (players) => players && players[0] && players[0].toLowerCase() === name;
+    const asStriker = (players) => players && (players[1]?.toLowerCase() === name || players[2]?.toLowerCase() === name);
+    if (role === 'any') return hasPlayer(t1) || hasPlayer(t2);
+    if (role === 'gk') return asGK(t1) || asGK(t2);
+    if (role === 'striker') return asStriker(t1) || asStriker(t2);
+    return hasPlayer(t1) || hasPlayer(t2);
+}
+
+function populateGameLogScrimTeamOptions() {
+    const select = document.getElementById('gameLogFilterScrimTeam');
+    if (!select || !state.statsProcessor) return;
+    if (select.options.length > 1) return;
+    const defs = state.statsProcessor.constructor.getScrimTeamDefinitions();
+    defs.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.name;
+        opt.textContent = t.name;
+        select.appendChild(opt);
+    });
+}
+
 export function loadGameLog() {
     const gameLogContent = document.getElementById('gameLogContent');
     if (!gameLogContent || !state.statsProcessor) return;
 
-    const allGames = state.statsProcessor.getAllGamesForDisplay();
+    const p = state.statsProcessor;
+    let allGames = p.getAllGamesForDisplay();
+
+    const playerInputEl = document.getElementById('gameLogFilterPlayer');
+    const playerFilter = (playerInputEl?.value || state.gameLogFilterPlayer || '').trim();
+    const roleFilter = state.gameLogFilterRole || 'any';
+    const teamFilter = state.gameLogFilterScrimTeam || '';
+
+    if (playerFilter) {
+        allGames = allGames.filter(g => gameMatchesPlayerFilter(g, playerFilter, roleFilter));
+    }
+    if (teamFilter) {
+        allGames = allGames.filter(g => p.gameHasScrimTeam(g, teamFilter));
+    }
+
+    populateGameLogScrimTeamOptions();
+
+    const playerInput = document.getElementById('gameLogFilterPlayer');
+    const roleSelect = document.getElementById('gameLogFilterRole');
+    const teamSelect = document.getElementById('gameLogFilterScrimTeam');
+    if (playerInput) playerInput.value = playerFilter || '';
+    if (roleSelect) roleSelect.value = roleFilter;
+    if (teamSelect) teamSelect.value = teamFilter || '';
 
     if (allGames.length === 0) {
         gameLogContent.innerHTML = emptyStateHtml('No games found');

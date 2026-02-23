@@ -13,7 +13,7 @@ export function emptyStateHtml(message) {
     return `<p style="${EMPTY_STATE_STYLE}">${message}</p>`;
 }
 
-const PAGE_IDS = ['homePage', 'playersPage', 'gameLogPage', 'recordsPage', 'playerProfilePage'];
+const PAGE_IDS = ['homePage', 'playersPage', 'gameLogPage', 'recordsPage', 'teamsPage', 'scrimsPage', 'playerProfilePage', 'teamProfilePage'];
 
 /**
  * Returns the main page container elements (may be null).
@@ -24,7 +24,10 @@ export function getPageElements() {
         playersPage: document.getElementById('playersPage'),
         gameLogPage: document.getElementById('gameLogPage'),
         recordsPage: document.getElementById('recordsPage'),
-        profilePage: document.getElementById('playerProfilePage')
+        teamsPage: document.getElementById('teamsPage'),
+        scrimsPage: document.getElementById('scrimsPage'),
+        profilePage: document.getElementById('playerProfilePage'),
+        teamProfilePage: document.getElementById('teamProfilePage')
     };
 }
 
@@ -40,7 +43,10 @@ export function showOnlyPage(visibleId, homeDisplay = 'grid') {
         [pages.playersPage, visibleId === 'playersPage' ? 'block' : 'none'],
         [pages.gameLogPage, visibleId === 'gameLogPage' ? 'block' : 'none'],
         [pages.recordsPage, visibleId === 'recordsPage' ? 'block' : 'none'],
-        [pages.profilePage, visibleId === 'playerProfilePage' ? 'block' : 'none']
+        [pages.teamsPage, visibleId === 'teamsPage' ? 'block' : 'none'],
+        [pages.scrimsPage, visibleId === 'scrimsPage' ? 'block' : 'none'],
+        [pages.profilePage, visibleId === 'playerProfilePage' ? 'block' : 'none'],
+        [pages.teamProfilePage, visibleId === 'teamProfilePage' ? 'block' : 'none']
     ];
     entries.forEach(([el, display]) => {
         if (el) el.style.display = display;

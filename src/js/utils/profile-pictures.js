@@ -35,7 +35,7 @@ export function getProfilePicturePath(playerName) {
         'lala': 'cropped-lala.png',
         'nae': 'cropped-nae.png',
         'neptune': 'cropped-neptune.png',
-        'pike': 'cropped-pike.png',
+        'pikeman': 'cropped-pikeman.png',
         'popop': 'cropped-popop.png',
         'rob': 'cropped-rob.png',
         'saber': 'cropped-saber.png',
@@ -55,23 +55,24 @@ export function getProfilePicturePath(playerName) {
     return basePath + `cropped-${name}.png`;
 }
 
-/** Builds player name + icon HTML; onclick uses window.showPlayerProfile when clickable. */
-export function getPlayerNameWithIcon(playerName, size = 32, clickable = true) {
+/** Builds player name + icon HTML; onclick uses window.showPlayerProfile when clickable.
+ * @param {boolean} [iconAfterName=false] - If true, render name then icon (icon to the right of name).
+ */
+export function getPlayerNameWithIcon(playerName, size = 32, clickable = true, iconAfterName = false) {
     if (!playerName) return '';
-    
     const picturePath = getProfilePicturePath(playerName);
     const iconSize = `${size}px`;
-    // Use a static version number for cache-busting (update this when images change)
     const cacheBuster = picturePath ? '?v=2' : '';
+    const iconMargin = iconAfterName ? 'margin-left: 0.5rem; margin-right: 0;' : 'margin-right: 0.5rem; margin-left: 0;';
     const iconHtml = picturePath 
-        ? `<img src="${picturePath}${cacheBuster}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; margin-right: 0.5rem; vertical-align: middle; display: inline-block;">`
+        ? `<img src="${picturePath}${cacheBuster}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; ${iconMargin} vertical-align: middle; display: inline-block;">`
         : '';
     
     const nameClass = clickable ? 'stat-player' : '';
     const onClick = clickable ? `onclick="showPlayerProfile('${playerName.replace(/'/g, "\\'")}')"` : '';
     
+    const nameSpan = `<span>${playerName}</span>`;
     return `<span class="player-name-with-icon ${nameClass}" ${onClick}>
-        ${iconHtml}
-        <span>${playerName}</span>
+        ${iconAfterName ? nameSpan + iconHtml : iconHtml + nameSpan}
     </span>`;
 }

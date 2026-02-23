@@ -1,0 +1,328 @@
+/* Page: Teams – carousel, roster table, team profile */
+
+.teams-page {
+    margin: 0 auto;
+    max-width: 1400px;
+    padding: 2rem;
+}
+
+.teams-page-header {
+    margin-bottom: 2rem;
+}
+
+.teams-page-title {
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Scrim vs scrim only toggle */
+.teams-toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.teams-scrim-only-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.teams-toggle-slider {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.teams-toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.teams-scrim-only-toggle:checked + .teams-toggle-slider {
+    background: var(--tab-active);
+    border-color: var(--tab-active);
+}
+
+.teams-scrim-only-toggle:checked + .teams-toggle-slider::after {
+    transform: translateX(20px);
+    background: #fff;
+}
+
+.teams-toggle-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.teams-carousel-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+    position: relative;
+}
+
+.teams-carousel {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    flex: 1;
+    min-width: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.teams-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.team-card {
+    min-width: 220px;
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--content-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.team-card-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.team-card-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.team-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    background: var(--stat-bg);
+    border-radius: 8px;
+}
+
+.team-stat-item .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.team-stat-item .stat-number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.teams-roster-section .roster-header,
+.teams-roster-section .roster-controls,
+.teams-roster-section .roster-table-container {
+    /* Reuse roster layout from roster.css */
+}
+
+.team-cell.team-name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Team profile page */
+.team-profile-page {
+    margin: 0 auto;
+    max-width: 1400px;
+    padding: 2rem;
+}
+
+.team-profile-back {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--tab-active);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.team-profile-back:hover {
+    text-decoration: underline;
+}
+
+/* White backdrop for matchups + lookup (same as player profile content area) */
+.team-profile-content {
+    background: var(--content-bg);
+    padding: 2.5rem;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Banner: same visual as player profile header (gradient strip when you click a team) */
+.team-profile-banner {
+    background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-mint) 100%);
+    color: var(--color-pink);
+    padding: 2rem 2.5rem;
+    position: relative;
+    border-bottom: 3px solid var(--accent-yellow);
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 2rem;
+}
+
+.team-profile-header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.team-profile-banner .team-profile-name {
+    font-size: 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+    color: var(--color-pink);
+}
+
+/* Roster (icon + name per player) sits to the right of the team name */
+.team-profile-banner .team-profile-roster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: rgba(255, 219, 187, 0.95);
+    margin-left: auto;
+}
+
+/* Same 3x2 grid layout as player profile banner */
+.team-profile-banner .team-profile-stats-grid.profile-stats-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 1rem;
+    margin-bottom: 0;
+    max-width: 100%;
+    padding: 0.5rem;
+    align-items: start;
+}
+
+.team-profile-banner .team-stat-games { grid-column: 1; grid-row: 1; min-width: 120px; }
+.team-profile-banner .team-stat-winrate { grid-column: 2; grid-row: 1; min-width: 120px; }
+.team-profile-banner .team-stat-winstreak { grid-column: 3; grid-row: 1; min-width: 140px; }
+.team-profile-banner .team-stat-plusminus { grid-column: 1; grid-row: 2; }
+.team-profile-banner .team-stat-wl { grid-column: 2; grid-row: 2; min-width: 120px; }
+.team-profile-banner .team-stat-last10 { grid-column: 3; grid-row: 2; min-width: 140px; }
+
+.team-profile-banner .profile-stat-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 100px;
+    color: var(--color-pink);
+}
+
+.team-profile-banner .profile-stat-label {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-pink);
+}
+
+.team-profile-banner .profile-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-pink);
+}
+
+.team-profile-stat-box {
+    background: var(--stat-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.team-profile-stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.team-profile-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.team-profile-section {
+    margin-bottom: 2rem;
+}
+
+.team-matchups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.team-matchup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.team-matchup-opp {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.team-matchup-record {
+    font-weight: 700;
+    color: var(--tab-active);
+}
+
+.team-profile-lookup {
+    margin-top: 2rem;
+}
+
+.team-profile-lookup .lookup-result.hidden {
+    display: none;
+}

@@ -1,0 +1,124 @@
+/* Page: Scrims – tournament team win rates and head-to-head */
+
+.scrims-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem;
+}
+
+.scrims-header {
+    margin-bottom: 2rem;
+}
+
+.scrims-title {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.scrims-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.scrims-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.scrims-section {
+    background: var(--content-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-light, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.scrims-section-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.35rem;
+}
+
+.scrims-section-note {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0 0 1rem;
+}
+
+.scrims-winrates-table-wrap,
+.scrims-h2h-table-wrap {
+    overflow-x: auto;
+}
+
+.scrims-winrates-table,
+.scrims-h2h-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.scrims-winrates-table th,
+.scrims-winrates-table td,
+.scrims-h2h-table th,
+.scrims-h2h-table td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.scrims-winrates-table th,
+.scrims-h2h-table th {
+    font-weight: 600;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.scrims-winrates-table td:nth-child(2),
+.scrims-winrates-table td:nth-child(3),
+.scrims-winrates-table td:nth-child(4),
+.scrims-winrates-table td:nth-child(5),
+.scrims-h2h-table td {
+    text-align: center;
+}
+
+.scrims-team-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.scrims-winpct {
+    font-weight: 600;
+    color: var(--tab-active, #8e7dbe);
+}
+
+.scrims-h2h-header {
+    max-width: 140px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.scrims-h2h-team {
+    font-weight: 600;
+    max-width: 160px;
+    white-space: normal;
+}
+
+.scrims-h2h-cell {
+    min-width: 3rem;
+}
+
+.scrims-h2h-cell.scrims-h2h-empty {
+    background: rgba(0, 0, 0, 0.02);
+    color: var(--text-secondary);
+}
+
+.scrims-winrates-table tbody tr:hover,
+.scrims-h2h-table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}

@@ -6,6 +6,8 @@ import { state } from '../state/store.js';
 import { loadGameLog } from './game-log.js';
 import { loadPlayersPage } from './players.js';
 import { loadRecordsPage } from './records.js';
+import { loadTeamsPage } from './teams.js';
+import { loadScrimsPage } from './scrims.js';
 import { loadPlayerProfile } from './profile.js';
 import { populateMonthDropdown } from '../utils/month-selector.js';
 import { showOnlyPage } from '../utils/dom.js';
@@ -28,7 +30,7 @@ export function goBackHome() {
     if (!pages) return;
     showOnlyPage('homePage', 'grid');
     clearLookupResult();
-    updateActiveNavLink(document.querySelector('.nav-link[onclick*="goBackHome"]'));
+    updateActiveNavLink(null);
     state.currentPlayerName = '';
 }
 
@@ -64,6 +66,24 @@ export function showRecordsPage() {
     showOnlyPage('recordsPage');
     loadRecordsPage();
     updateActiveNavLink(document.querySelector('.nav-link[onclick*="showRecordsPage"]'));
+    window.scrollTo(0, 0);
+}
+
+export function showTeamsPage() {
+    if (!document.getElementById('teamsPage')) return;
+    showOnlyPage('teamsPage');
+    const toggle = document.getElementById('teamsScrimOnlyToggle');
+    if (toggle) toggle.checked = !!state.teamsScrimVsScrimOnly;
+    loadTeamsPage();
+    updateActiveNavLink(document.getElementById('navTeamsTrigger'));
+    window.scrollTo(0, 0);
+}
+
+export function showScrimsPage() {
+    if (!document.getElementById('scrimsPage')) return;
+    showOnlyPage('scrimsPage');
+    loadScrimsPage();
+    updateActiveNavLink(document.getElementById('navTeamsTrigger'));
     window.scrollTo(0, 0);
 }
 

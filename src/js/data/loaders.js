@@ -86,9 +86,10 @@ export async function loadData(onSuccess) {
             }
         };
 
-        const [responseJan, responseFeb] = await Promise.all([
+        const [responseJan, responseFeb, responseMarch] = await Promise.all([
             fetch('data/scoresjan.csv' + cacheBuster, fetchOptions),
-            fetch('data/scoresfeb.csv' + cacheBuster, fetchOptions)
+            fetch('data/scoresfeb.csv' + cacheBuster, fetchOptions),
+            fetch('data/scoresmarch.csv' + cacheBuster, fetchOptions)
         ]);
 
         if (!responseJan.ok) {
@@ -97,9 +98,13 @@ export async function loadData(onSuccess) {
         if (!responseFeb.ok) {
             throw new Error(`HTTP error loading scoresfeb.csv! status: ${responseFeb.status}`);
         }
+        if (!responseMarch.ok) {
+            throw new Error(`HTTP error loading scoresmarch.csv! status: ${responseMarch.status}`);
+        }
 
         const csvTextJan = await responseJan.text();
         const csvTextFeb = await responseFeb.text();
+        const csvTextMarch = await responseMarch.text();
 
         if (!csvTextJan || csvTextJan.trim().length === 0) {
             throw new Error('scoresjan.csv file is empty');
@@ -107,9 +112,13 @@ export async function loadData(onSuccess) {
         if (!csvTextFeb || csvTextFeb.trim().length === 0) {
             throw new Error('scoresfeb.csv file is empty');
         }
+        if (!csvTextMarch || csvTextMarch.trim().length === 0) {
+            throw new Error('scoresmarch.csv file is empty');
+        }
 
         state.statsProcessor.parseCSV(csvTextJan, false);
         state.statsProcessor.parseCSV(csvTextFeb, true);
+        state.statsProcessor.parseCSV(csvTextMarch, true);
         state.statsProcessor.calculateStats();
 
         await loadAccolades();
@@ -125,7 +134,7 @@ export async function loadData(onSuccess) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 2rem; color: var(--text-primary);">
                     <h2 style="color: #ef4444; margin-bottom: 1rem;">Error Loading Data</h2>
-                    <p>Could not load data files (scoresjan.csv and scoresfeb.csv). Make sure the files exist.</p>
+                    <p>Could not load data files (scoresjan.csv, scoresfeb.csv, scoresmarch.csv). Make sure the files exist.</p>
                     <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">${error.message}</p>
                     <button id="retryLoadBtn" style="margin-top: 1rem;">Try Again</button>
                 </div>

@@ -123,7 +123,13 @@ export async function loadData(onSuccess) {
             state.statsProcessor.parseCSV(csvTextMarch, true);
         }
         const afterMarch = state.statsProcessor.games.length;
-        console.log('Scores loaded: Jan ' + afterJan + ', +Feb ' + (afterFeb - afterJan) + ', +March ' + (afterMarch - afterFeb) + ' → ' + afterMarch + ' total games');
+        const marchAdded = afterMarch - afterFeb;
+        console.log('Scores loaded: Jan ' + afterJan + ', +Feb ' + (afterFeb - afterJan) + ', +March ' + marchAdded + ' → ' + afterMarch + ' total games');
+        if (marchAdded > 0 && state.statsProcessor.games.length > 0) {
+            const sorted = [...state.statsProcessor.games].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const latest = sorted[sorted.length - 1]?.timestamp;
+            if (latest) console.log('Latest game date: ' + latest.slice(0, 10));
+        }
 
         state.statsProcessor.calculateStats();
 

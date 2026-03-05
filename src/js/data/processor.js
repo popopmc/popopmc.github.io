@@ -31,7 +31,8 @@ class StatsProcessor {
 
     // Parse CSV data
     parseCSV(csvText, append = false) {
-        const lines = csvText.trim().split('\n');
+        const normalized = (csvText || '').trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = normalized.split('\n');
         const headers = lines[0].split(',');
         
         // Clear games array and seen games set unless appending

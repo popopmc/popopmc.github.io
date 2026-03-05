@@ -98,13 +98,15 @@ export async function loadData(onSuccess) {
         if (!responseFeb.ok) {
             throw new Error(`HTTP error loading scoresfeb.csv! status: ${responseFeb.status}`);
         }
-        if (!responseMarch.ok) {
-            throw new Error(`HTTP error loading scoresmarch.csv! status: ${responseMarch.status}`);
-        }
 
         const csvTextJan = await responseJan.text();
         const csvTextFeb = await responseFeb.text();
-        const csvTextMarch = await responseMarch.text();
+        let csvTextMarch = '';
+        if (responseMarch.ok) {
+            csvTextMarch = await responseMarch.text();
+        } else {
+            console.warn('scoresmarch.csv not found or error (status ' + responseMarch.status + '). Loaded Jan + Feb only.');
+        }
 
         if (!csvTextJan || csvTextJan.trim().length === 0) {
             throw new Error('scoresjan.csv file is empty');
@@ -112,13 +114,17 @@ export async function loadData(onSuccess) {
         if (!csvTextFeb || csvTextFeb.trim().length === 0) {
             throw new Error('scoresfeb.csv file is empty');
         }
-        if (!csvTextMarch || csvTextMarch.trim().length === 0) {
-            throw new Error('scoresmarch.csv file is empty');
-        }
 
         state.statsProcessor.parseCSV(csvTextJan, false);
+        const afterJan = state.statsProcessor.games.length;
         state.statsProcessor.parseCSV(csvTextFeb, true);
-        state.statsProcessor.parseCSV(csvTextMarch, true);
+        const afterFeb = state.statsProcessor.games.length;
+        if (csvTextMarch && csvTextMarch.trim().length > 0) {
+            state.statsProcessor.parseCSV(csvTextMarch, true);
+        }
+        const afterMarch = state.statsProcessor.games.length;
+        console.log('Scores loaded: Jan ' + afterJan + ', +Feb ' + (afterFeb - afterJan) + ', +March ' + (afterMarch - afterFeb) + ' → ' + afterMarch + ' total games');
+
         state.statsProcessor.calculateStats();
 
         await loadAccolades();

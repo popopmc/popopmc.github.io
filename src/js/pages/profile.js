@@ -4,6 +4,7 @@
 
 import { state } from '../state/store.js';
 import { getProfilePicturePath, getPlayerNameWithIcon } from '../utils/profile-pictures.js';
+import { canonicalPlayerName } from '../utils/player-names.js';
 import { populateMonthDropdown } from '../utils/month-selector.js';
 import { emptyStateHtml } from '../utils/dom.js';
 import { renderDuoRow, renderMostTeamedRow } from '../utils/duo-row.js';
@@ -25,6 +26,7 @@ const BADGE_IMAGES = {
 };
 
 export function loadPlayerProfile(playerName) {
+    playerName = canonicalPlayerName(playerName);
     if (state.statsProcessor?.isHiddenPlayer(playerName)) {
         if (typeof window.goBackHome === 'function') window.goBackHome();
         return;
@@ -153,7 +155,7 @@ export function loadPlayerAccolades(playerName) {
     const accoladesList = document.getElementById('accoladesList');
     if (!accoladesSection || !accoladesList) return;
 
-    const normalizedName = playerName.toLowerCase().trim();
+    const normalizedName = canonicalPlayerName(playerName).toLowerCase();
     const accolades = state.playerAccolades.get(normalizedName) || [];
     if (accolades.length === 0) {
         accoladesSection.style.display = 'none';

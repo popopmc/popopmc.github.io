@@ -1,10 +1,14 @@
 // CSV Parser and Stats Calculator
 
+import { canonicalPlayerName } from '../utils/player-names.js';
+
 /** Players hidden from UI: no profile, no game log rows, excluded from player lists. Their games still count for other players' stats. Add names here to hide them. */
 const HIDDEN_PLAYERS = [];
 
 function isHiddenPlayer(name) {
-    return name && HIDDEN_PLAYERS.some(h => h.toLowerCase() === name.toLowerCase());
+    if (!name) return false;
+    const c = canonicalPlayerName(name);
+    return HIDDEN_PLAYERS.some(h => h.toLowerCase() === c.toLowerCase());
 }
 
 function gameHasHiddenPlayer(game) {
@@ -26,7 +30,9 @@ class StatsProcessor {
 
     /** Whether this player is hidden from UI (no profile, no game log, excluded from lists). */
     isHiddenPlayer(name) {
-        return name && HIDDEN_PLAYERS.some(h => h.toLowerCase() === name.toLowerCase());
+        if (!name) return false;
+        const c = canonicalPlayerName(name);
+        return HIDDEN_PLAYERS.some(h => h.toLowerCase() === c.toLowerCase());
     }
 
     // Parse CSV data
@@ -53,13 +59,13 @@ class StatsProcessor {
                 team1: {
                     players: [values[1], values[2], values[3]]
                         .filter(p => p && p.trim() !== '')
-                        .map(p => p.trim()),
+                        .map(p => canonicalPlayerName(p.trim())),
                     score: parseInt(values[4]) || 0
                 },
                 team2: {
                     players: [values[5], values[6], values[7]]
                         .filter(p => p && p.trim() !== '')
-                        .map(p => p.trim()),
+                        .map(p => canonicalPlayerName(p.trim())),
                     score: parseInt(values[8]) || 0
                 }
             };
@@ -540,6 +546,7 @@ class StatsProcessor {
     // Get player-specific stats
     getPlayerProfile(playerName, isMonthly = false, selectedMonth = null, selectedYear = null) {
         if (this.isHiddenPlayer(playerName)) return null;
+        playerName = canonicalPlayerName(playerName);
         // Get player stats directly from the map without filtering by minimum games
         const playerNameLower = playerName.toLowerCase();
         
@@ -634,6 +641,7 @@ class StatsProcessor {
 
     // Get duo stats for a specific player
     getPlayerDuoStats(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        playerName = canonicalPlayerName(playerName);
         const duos = [];
         let statsMap = this.teammateStats;
         
@@ -746,6 +754,8 @@ class StatsProcessor {
 
     // Get winrate with specific teammate
     getDuoWinRate(player1, player2, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        player1 = canonicalPlayerName(player1);
+        player2 = canonicalPlayerName(player2);
         if (this.isHiddenPlayer(player2)) return null;
         if (isMonthly && selectedMonth !== null && selectedYear !== null) {
             // Calculate on the fly for selected month
@@ -791,6 +801,7 @@ class StatsProcessor {
 
     // Get opponent stats for a specific player
     getOpponentStats(playerName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        playerName = canonicalPlayerName(playerName);
         const opponents = [];
         const playerLower = playerName.toLowerCase();
         let statsMap = isMonthly ? this.monthlyOpponentStats : this.opponentStats;
@@ -900,6 +911,8 @@ class StatsProcessor {
 
     // Get win rate against specific opponent
     getOpponentWinRate(playerName, opponentName, minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        playerName = canonicalPlayerName(playerName);
+        opponentName = canonicalPlayerName(opponentName);
         if (this.isHiddenPlayer(opponentName)) return null;
         if (isMonthly && selectedMonth !== null && selectedYear !== null) {
             // Calculate on the fly for selected month
@@ -946,6 +959,8 @@ class StatsProcessor {
      * Returns { games, winsForA, winsForB } or null.
      */
     _getMatchupWithRole(playerA, playerB, roleA = 'any', roleB = 'any', isMonthly = false, selectedMonth = null, selectedYear = null) {
+        playerA = canonicalPlayerName(playerA);
+        playerB = canonicalPlayerName(playerB);
         const aLower = playerA.toLowerCase();
         const bLower = playerB.toLowerCase();
         let winsForA = 0, winsForB = 0;
@@ -982,6 +997,8 @@ class StatsProcessor {
      * Uses canonical matchup so "A vs B" and "B vs A" always show the same game count (and complementary W-L).
      */
     getOpponentWinRateWithRole(playerName, opponentName, opponentRole = 'any', playerRole = 'any', minGames = 1, isMonthly = false, selectedMonth = null, selectedYear = null) {
+        playerName = canonicalPlayerName(playerName);
+        opponentName = canonicalPlayerName(opponentName);
         if (this.isHiddenPlayer(opponentName)) return null;
         if (opponentRole === 'any' && playerRole === 'any') {
             return this.getOpponentWinRate(playerName, opponentName, minGames, isMonthly, selectedMonth, selectedYear);
@@ -1659,6 +1676,7 @@ class StatsProcessor {
 
     /** Team vs single player: this team's W-L in games where that player was on the opposing side. */
     getTeamVsPlayerWinRate(teamName, playerName, minGames = 1, selectedMonth, selectedYear) {
+        playerName = canonicalPlayerName(playerName);
         const opponents = this.getTeamOpponentStats(teamName, minGames, selectedMonth, selectedYear);
         const found = opponents.find(o => o.opponent.toLowerCase() === playerName.toLowerCase());
         if (!found) return null;

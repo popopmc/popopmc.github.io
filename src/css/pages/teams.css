@@ -186,10 +186,10 @@
     border-radius: 0 0 8px 8px;
 }
 
-/* Banner: same visual as player profile header (gradient strip when you click a team) */
+/* Banner: same visual as player profile header (when you click a team) */
 .team-profile-banner {
-    background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-mint) 100%);
-    color: var(--color-pink);
+    background: var(--color-purple);
+    color: var(--color-cream);
     padding: 2rem 2.5rem;
     position: relative;
     border-bottom: 3px solid var(--accent-yellow);
@@ -211,7 +211,7 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     margin: 0;
-    color: var(--color-pink);
+    color: var(--color-cream);
 }
 
 /* Roster (icon + name per player) sits to the right of the team name */
@@ -221,7 +221,7 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 1rem;
-    color: rgba(255, 219, 187, 0.95);
+    color: rgba(244, 248, 211, 0.95);
     margin-left: auto;
 }
 
@@ -245,13 +245,12 @@
 .team-profile-banner .team-stat-last10 { grid-column: 3; grid-row: 2; min-width: 140px; }
 
 .team-profile-banner .profile-stat-box {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
+    background: var(--color-cream);
     padding: 1rem 1.25rem;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(142, 125, 190, 0.35);
     min-width: 100px;
-    color: var(--color-pink);
+    color: var(--color-purple);
 }
 
 .team-profile-banner .profile-stat-label {
@@ -260,13 +259,13 @@
     margin-bottom: 0.2rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--color-pink);
+    color: var(--color-purple);
 }
 
 .team-profile-banner .profile-stat-value {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--color-pink);
+    color: var(--color-purple);
 }
 
 .team-profile-stat-box {

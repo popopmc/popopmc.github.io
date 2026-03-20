@@ -3,6 +3,7 @@
  */
 
 import { state } from '../state/store.js';
+import { canonicalPlayerName } from '../utils/player-names.js';
 import { displayStats, updateDateDisplay, updateMoreStats } from '../pages/home.js';
 
 export function showLoading() {
@@ -54,7 +55,7 @@ export async function loadAccolades() {
             for (let j = 1; j < values.length; j++) {
                 const playerName = values[j].trim();
                 if (playerName) {
-                    const normalizedName = playerName.toLowerCase();
+                    const normalizedName = canonicalPlayerName(playerName).toLowerCase();
                     if (!state.playerAccolades.has(normalizedName)) {
                         state.playerAccolades.set(normalizedName, []);
                     }

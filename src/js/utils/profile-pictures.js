@@ -2,10 +2,12 @@
  * Profile picture path and player-name-with-icon HTML helpers.
  */
 
+import { canonicalPlayerName } from './player-names.js';
+
 export function getProfilePicturePath(playerName) {
     if (!playerName) return null;
     
-    const name = playerName.toLowerCase().trim();
+    const name = canonicalPlayerName(playerName).toLowerCase();
     const basePath = 'src/assets/profile-pictures/';
     
     // Map of player names to their actual file names (handles special cases)

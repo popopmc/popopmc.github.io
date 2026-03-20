@@ -4,11 +4,12 @@
 
 import { state } from '../state/store.js';
 import { getPlayerNameWithIcon } from '../utils/profile-pictures.js';
+import { canonicalPlayerName } from '../utils/player-names.js';
 import { emptyStateHtml } from '../utils/dom.js';
 
 function gameMatchesPlayerFilter(game, playerName, role) {
     if (!playerName || !playerName.trim()) return true;
-    const name = playerName.trim().toLowerCase();
+    const name = canonicalPlayerName(playerName.trim()).toLowerCase();
     const t1 = game.team1?.players || [];
     const t2 = game.team2?.players || [];
     const hasPlayer = (players) => players && players.some(p => p && p.toLowerCase() === name);

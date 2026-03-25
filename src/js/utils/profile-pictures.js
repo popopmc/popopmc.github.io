@@ -4,6 +4,14 @@
 
 import { canonicalPlayerName } from './player-names.js';
 
+function getCanonicalDisplayName(originalName, canonicalName) {
+    const original = (originalName ?? '').toString().trim();
+    if (!original) return canonicalName;
+    if (original === original.toUpperCase()) return canonicalName.toUpperCase();
+    if (original === original.toLowerCase()) return canonicalName.toLowerCase();
+    return canonicalName;
+}
+
 export function getProfilePicturePath(playerName) {
     if (!playerName) return null;
     
@@ -62,18 +70,20 @@ export function getProfilePicturePath(playerName) {
  */
 export function getPlayerNameWithIcon(playerName, size = 32, clickable = true, iconAfterName = false) {
     if (!playerName) return '';
+    const canonical = canonicalPlayerName(playerName);
+    const displayName = getCanonicalDisplayName(playerName, canonical);
     const picturePath = getProfilePicturePath(playerName);
     const iconSize = `${size}px`;
     const cacheBuster = picturePath ? '?v=2' : '';
     const iconMargin = iconAfterName ? 'margin-left: 0.5rem; margin-right: 0;' : 'margin-right: 0.5rem; margin-left: 0;';
     const iconHtml = picturePath 
-        ? `<img src="${picturePath}${cacheBuster}" alt="${playerName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; ${iconMargin} vertical-align: middle; display: inline-block;">`
+        ? `<img src="${picturePath}${cacheBuster}" alt="${displayName}" class="player-icon" style="width: ${iconSize}; height: ${iconSize}; object-fit: contain; border-radius: 50%; ${iconMargin} vertical-align: middle; display: inline-block;">`
         : '';
     
     const nameClass = clickable ? 'stat-player' : '';
-    const onClick = clickable ? `onclick="showPlayerProfile('${playerName.replace(/'/g, "\\'")}')"` : '';
+    const onClick = clickable ? `onclick="showPlayerProfile('${canonical.replace(/'/g, "\\'")}')"` : '';
     
-    const nameSpan = `<span>${playerName}</span>`;
+    const nameSpan = `<span>${displayName}</span>`;
     return `<span class="player-name-with-icon ${nameClass}" ${onClick}>
         ${iconAfterName ? nameSpan + iconHtml : iconHtml + nameSpan}
     </span>`;

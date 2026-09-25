@@ -87,46 +87,48 @@ export async function loadData(onSuccess) {
             }
         };
 
-        const [responseJan, responseFeb, responseMarch] = await Promise.all([
-            fetch('data/scoresjan.csv' + cacheBuster, fetchOptions),
-            fetch('data/scoresfeb.csv' + cacheBuster, fetchOptions),
-            fetch('data/scoresmarch.csv' + cacheBuster, fetchOptions)
-        ]);
+        const scoreFiles = [
+            'scoresjan.csv',
+            'scoresfeb.csv',
+            'scoresmarch.csv',
+            'scoresapril.csv',
+            'scoresmay.csv',
+            'scoresjune.csv',
+            'scoresjuly.csv',
+            'scoresaugust.csv',
+            'scoresseptember.csv'
+        ];
+        const requiredFiles = new Set(['scoresjan.csv', 'scoresfeb.csv']);
+        const responses = await Promise.all(
+            scoreFiles.map((name) => fetch('data/' + name + cacheBuster, fetchOptions))
+        );
 
-        if (!responseJan.ok) {
-            throw new Error(`HTTP error loading scoresjan.csv! status: ${responseJan.status}`);
+        const loadedCounts = [];
+        let appended = false;
+        for (let i = 0; i < scoreFiles.length; i++) {
+            const name = scoreFiles[i];
+            const response = responses[i];
+            if (!response.ok) {
+                if (requiredFiles.has(name)) {
+                    throw new Error(`HTTP error loading ${name}! status: ${response.status}`);
+                }
+                console.warn(name + ' not found or error (status ' + response.status + '). Skipping.');
+                continue;
+            }
+            const csvText = await response.text();
+            if (!csvText || csvText.trim().length === 0) {
+                if (requiredFiles.has(name)) {
+                    throw new Error(name + ' file is empty');
+                }
+                continue;
+            }
+            const before = state.statsProcessor.games.length;
+            state.statsProcessor.parseCSV(csvText, appended);
+            appended = true;
+            loadedCounts.push(name.replace('scores', '').replace('.csv', '') + ' +' + (state.statsProcessor.games.length - before));
         }
-        if (!responseFeb.ok) {
-            throw new Error(`HTTP error loading scoresfeb.csv! status: ${responseFeb.status}`);
-        }
-
-        const csvTextJan = await responseJan.text();
-        const csvTextFeb = await responseFeb.text();
-        let csvTextMarch = '';
-        if (responseMarch.ok) {
-            csvTextMarch = await responseMarch.text();
-        } else {
-            console.warn('scoresmarch.csv not found or error (status ' + responseMarch.status + '). Loaded Jan + Feb only.');
-        }
-
-        if (!csvTextJan || csvTextJan.trim().length === 0) {
-            throw new Error('scoresjan.csv file is empty');
-        }
-        if (!csvTextFeb || csvTextFeb.trim().length === 0) {
-            throw new Error('scoresfeb.csv file is empty');
-        }
-
-        state.statsProcessor.parseCSV(csvTextJan, false);
-        const afterJan = state.statsProcessor.games.length;
-        state.statsProcessor.parseCSV(csvTextFeb, true);
-        const afterFeb = state.statsProcessor.games.length;
-        if (csvTextMarch && csvTextMarch.trim().length > 0) {
-            state.statsProcessor.parseCSV(csvTextMarch, true);
-        }
-        const afterMarch = state.statsProcessor.games.length;
-        const marchAdded = afterMarch - afterFeb;
-        console.log('Scores loaded: Jan ' + afterJan + ', +Feb ' + (afterFeb - afterJan) + ', +March ' + marchAdded + ' → ' + afterMarch + ' total games');
-        if (marchAdded > 0 && state.statsProcessor.games.length > 0) {
+        console.log('Scores loaded: ' + loadedCounts.join(', ') + ' → ' + state.statsProcessor.games.length + ' total games');
+        if (state.statsProcessor.games.length > 0) {
             const sorted = [...state.statsProcessor.games].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             const latest = sorted[sorted.length - 1]?.timestamp;
             if (latest) console.log('Latest game date: ' + latest.slice(0, 10));
@@ -147,7 +149,7 @@ export async function loadData(onSuccess) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 2rem; color: var(--text-primary);">
                     <h2 style="color: #ef4444; margin-bottom: 1rem;">Error Loading Data</h2>
-                    <p>Could not load data files (scoresjan.csv, scoresfeb.csv, scoresmarch.csv). Make sure the files exist.</p>
+                    <p>Could not load the monthly score files (January through September). Make sure the files exist.</p>
                     <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">${error.message}</p>
                     <button id="retryLoadBtn" style="margin-top: 1rem;">Try Again</button>
                 </div>
